@@ -1,95 +1,84 @@
-/**
- * @type {import('stylelint').Config}
- */
 module.exports = {
-  extends: ['stylelint-config-standard', 'stylelint-config-property-sort-order-smacss'],
-  plugins: ['stylelint-order', 'stylelint-prettier'],
-  // customSyntax: 'postcss-html',
+  root: true,
+  extends: [
+    "stylelint-config-standard",
+    "stylelint-config-html/vue",
+    "stylelint-config-recess-order"
+  ],
+  plugins: ["stylelint-order", "stylelint-prettier", "stylelint-scss"],
   overrides: [
     {
-      files: ['**/*.(css|html|vue)'],
-      customSyntax: 'postcss-html',
+      files: ["**/*.(css|html|vue)"],
+      customSyntax: "postcss-html"
     },
     {
-      files: ['*.less', '**/*.less'],
-      customSyntax: 'postcss-less',
-      extends: ['stylelint-config-standard', 'stylelint-config-recommended-vue'],
-    },
-    {
-      files: ['*.scss', '**/*.scss'],
-      customSyntax: 'postcss-scss',
-      extends: ['stylelint-config-standard-scss', 'stylelint-config-recommended-vue/scss'],
-      rule: {
-        'scss/percent-placeholder-pattern': null,
-      },
-    },
+      files: ["*.scss", "**/*.scss"],
+      customSyntax: "postcss-scss",
+      extends: [
+        "stylelint-config-standard-scss",
+        "stylelint-config-recommended-vue/scss"
+      ]
+    }
   ],
   rules: {
-    'prettier/prettier': true,
-    'media-feature-range-notation': null,
-    'selector-not-notation': null,
-    'import-notation': null,
-    'function-no-unknown': null,
-    'selector-class-pattern': null,
-    'selector-pseudo-class-no-unknown': [
+    "selector-class-pattern": null,
+    "no-descending-specificity": null,
+    "scss/dollar-variable-pattern": null,
+    "selector-pseudo-class-no-unknown": [
       true,
       {
-        ignorePseudoClasses: ['global', 'deep'],
-      },
+        ignorePseudoClasses: ["deep", "global"]
+      }
     ],
-    'selector-pseudo-element-no-unknown': [
+    "selector-pseudo-element-no-unknown": [
       true,
       {
-        ignorePseudoElements: ['v-deep'],
-      },
+        ignorePseudoElements: ["v-deep", "v-global", "v-slotted"]
+      }
     ],
-    'at-rule-no-unknown': [
+    "at-rule-no-unknown": [
       true,
       {
         ignoreAtRules: [
-          'tailwind',
-          'apply',
-          'variants',
-          'responsive',
-          'screen',
-          'function',
-          'if',
-          'each',
-          'include',
-          'mixin',
-          'extend',
-        ],
-      },
+          "tailwind",
+          "apply",
+          "variants",
+          "responsive",
+          "screen",
+          "function",
+          "if",
+          "each",
+          "include",
+          "mixin",
+          "use"
+        ]
+      }
     ],
-    'no-empty-source': null,
-    'named-grid-areas-no-invalid': null,
-    'no-descending-specificity': null,
-    'font-family-no-missing-generic-family-keyword': null,
-    'rule-empty-line-before': [
-      'always',
+    "rule-empty-line-before": [
+      "always",
       {
-        ignore: ['after-comment', 'first-nested'],
-      },
+        ignore: ["after-comment", "first-nested"]
+      }
     ],
-    'unit-no-unknown': [true, { ignoreUnits: ['rpx'] }],
-    'order/order': [
+    "unit-no-unknown": [true, { ignoreUnits: ["rpx"] }],
+    "order/order": [
       [
-        'dollar-variables',
-        'custom-properties',
-        'at-rules',
-        'declarations',
+        "dollar-variables",
+        "custom-properties",
+        "at-rules",
+        "declarations",
         {
-          type: 'at-rule',
-          name: 'supports',
+          type: "at-rule",
+          name: "supports"
         },
         {
-          type: 'at-rule',
-          name: 'media',
+          type: "at-rule",
+          name: "media"
         },
-        'rules',
+        "rules"
       ],
-      { severity: 'error' },
-    ],
+      { severity: "warning" }
+    ]
   },
-  ignoreFiles: ['**/*.js', '**/*.jsx', '**/*.tsx', '**/*.ts'],
+  ignoreFiles: ["**/*.js", "**/*.ts", "**/*.jsx", "**/*.tsx"]
 };

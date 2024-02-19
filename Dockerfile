@@ -1,29 +1,20 @@
+FROM node:16-alpine as build-stage
 
-# https://stackoverflow.com/questions/53681522/share-variable-in-multi-stage-dockerfile-arg-before-from-not-substituted
-ARG PROJECT_DIR=/vue3-antdv-admin
+WORKDIR /app
+RUN corepack enable
+RUN corepack prepare pnpm@7.32.1 --activate
 
-FROM node:20-slim as builder
-ARG PROJECT_DIR
-WORKDIR $PROJECT_DIR
+RUN npm config set registry https://registry.npmmirror.com
 
-# 安装pnpm
-RUN npm install -g pnpm
+COPY .npmrc package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
-COPY . ./
-# 安装依赖
-# 若网络不通，可以使用淘宝源
-# RUN pnpm config set registry https://registry.npmmirror.com
-RUN pnpm install
-
-# 构建项目
-ENV VITE_BASE_URL=/
+COPY . .
 RUN pnpm build
 
+FROM nginx:stable-alpine as production-stage
 
-FROM nginx:alpine as production
-ARG PROJECT_DIR
-
-COPY --from=builder $PROJECT_DIR/dist/ /usr/share/nginx/html
-# COPY --from=builder $PROJECT_DIR/nginx.conf /etc/nginx/nginx.conf
-
+COPY --from=build-stage /app/dist /usr/share/nginx/html
 EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

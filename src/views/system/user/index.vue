@@ -1,214 +1,223 @@
-<template>
-  <SplitPanel>
-    <template #left-content>
-      <DeptTree @select="onTreeSelect" @init="onDeptTreeInitData" />
-    </template>
-    <template #right-content>
-      <DynamicTable
-        header-title="用户管理"
-        show-index
-        title-tooltip="请不要随意删除用户，避免到影响其他用户的使用。"
-        :data-request="loadTableData"
-        :columns="columns"
-        :scroll="{ x: 2000 }"
-        :row-selection="rowSelection"
-      >
-        <template v-if="isCheckRows" #title>
-          <Alert class="w-full" type="info" show-icon>
-            <template #message>
-              已选 {{ isCheckRows }} 项
-              <a-button type="link" @click="rowSelection.selectedRowKeys = []">取消选择</a-button>
-            </template>
-          </Alert>
-        </template>
-        <template #toolbar>
-          <a-button
-            type="primary"
-            :disabled="!$auth('system:user:create')"
-            @click="openUserModal({})"
-          >
-            <Icon icon="ant-design:plus-outlined" /> 新增
-          </a-button>
-          <a-button
-            type="error"
-            :disabled="!isCheckRows || !$auth('system:user:delete')"
-            @click="delRowConfirm(rowSelection.selectedRowKeys)"
-          >
-            <Icon icon="ant-design:delete-outlined" /> 删除
-          </a-button>
-        </template>
-      </DynamicTable>
-    </template>
-  </SplitPanel>
-</template>
+<script setup lang="ts">
+import { ref, watch } from "vue";
+import tree from "./tree.vue";
+import { useHook } from "./hook";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
-<script setup lang="tsx">
-  import { ref, computed } from 'vue';
-  import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
-  import { Modal, Alert } from 'ant-design-vue';
-  import { userSchemas } from './formSchemas';
-  import { baseColumns, type TableListItem, type TableColumnItem } from './columns';
-  import DeptTree from './DeptTree.vue';
-  import type { LoadDataParams } from '@/components/core/dynamic-table';
-  import { SplitPanel } from '@/components/basic/split-panel';
-  import { useTable } from '@/components/core/dynamic-table';
-  import Api from '@/api/';
-  import { useFormModal } from '@/hooks/useModal/';
-  import { findPath } from '@/utils/common';
+import Password from "@iconify-icons/ri/lock-password-line";
+import More from "@iconify-icons/ep/more-filled";
+import Delete from "@iconify-icons/ep/delete";
+import EditPen from "@iconify-icons/ep/edit-pen";
+import Download from "@iconify-icons/ep/download";
+import Upload from "@iconify-icons/ep/upload";
+import Search from "@iconify-icons/ep/search";
+import Refresh from "@iconify-icons/ep/refresh";
+import AddFill from "@iconify-icons/ri/add-circle-line";
+import { useUserStoreHook } from "@/store/modules/user";
 
-  defineOptions({
-    name: 'SystemUser',
-  });
+defineOptions({
+  name: "SystemUser"
+});
 
-  const [DynamicTable, dynamicTableInstance] = useTable({ formProps: { autoSubmitOnEnter: true } });
-  const [showModal] = useFormModal();
+const formRef = ref();
+const {
+  searchFormParams,
+  pageLoading,
+  columns,
+  dataList,
+  pagination,
+  buttonClass,
+  onSearch,
+  resetForm,
+  exportAllExcel,
+  openResetPasswordDialog,
+  handleDelete,
+  openDialog,
+  getList,
+  openUploadDialog
+} = useHook();
 
-  const selectedDeptId = ref<number>();
-  const deptTree = ref<any[]>([]);
-
-  const rowSelection = ref({
-    selectedRowKeys: [] as number[],
-    onChange: (selectedRowKeys: number[], selectedRows: TableListItem[]) => {
-      console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-      rowSelection.value.selectedRowKeys = selectedRowKeys;
-    },
-  });
-
-  // 是否勾选了表格行
-  const isCheckRows = computed(() => rowSelection.value.selectedRowKeys.length);
-
-  const loadTableData = async (params: LoadDataParams) => {
-    const data = await Api.systemUser.userList({
-      ...params,
-      deptId: selectedDeptId.value,
-    });
-    rowSelection.value.selectedRowKeys = [];
-    return data;
-  };
-
-  /**
-   * @description 打开操作用户弹窗
-   */
-  const openUserModal = async (record: Partial<TableListItem> = {}) => {
-    const { userCreate, userUpdate } = Api.systemUser;
-    const isUpdate = Boolean(record.id);
-
-    const [formRef] = await showModal({
-      modalProps: {
-        title: `${isUpdate ? '编辑' : '新增'}用户`,
-        width: 700,
-        onFinish: async (values) => {
-          console.log('新增/编辑用户', values);
-          values.id = record.id;
-          if (record.id) {
-            await userUpdate({ id: record.id }, values);
-          } else {
-            await userCreate(values);
-          }
-          dynamicTableInstance?.reload();
-        },
-      },
-      formProps: {
-        labelWidth: 100,
-        schemas: userSchemas,
-        autoSubmitOnEnter: true,
-      },
-    });
-
-    if (record.id) {
-      const { roles, dept } = await Api.systemUser.userRead({ id: record.id });
-      formRef?.setFieldsValue({
-        ...record,
-        deptId: dept.id,
-        roleIds: roles.map((item) => item.id),
-      });
-
-      formRef?.updateSchema([
-        { field: 'username', componentProps: { disabled: true } },
-        { field: 'password', required: false },
-      ]);
-    } else {
-      formRef?.updateSchema([
-        { field: 'username', componentProps: { disabled: false } },
-        {
-          field: 'password',
-          required: true,
-          defaultValue: 'a123456',
-          componentProps: { placeholder: '请输入' },
-        },
-      ]);
-    }
-
-    formRef?.updateSchema([
-      {
-        field: 'deptId',
-        componentProps: {
-          treeDefaultExpandedKeys: findPath(deptTree.value, formRef?.getFieldsValue().deptId) || [],
-          treeData: deptTree.value,
-        },
-      },
-    ]);
-  };
-
-  /**
-   * @description 表格删除行
-   */
-  const delRowConfirm = async (userId: number | number[]) => {
-    const { userDelete } = Api.systemUser;
-    if (Array.isArray(userId)) {
-      Modal.confirm({
-        title: '确定要删除所选的用户吗?',
-        icon: <ExclamationCircleOutlined />,
-        centered: true,
-        onOk: async () => {
-          await userDelete({ id: userId.join(',') });
-          dynamicTableInstance?.reload();
-        },
-      });
-    } else {
-      await userDelete({ id: userId }).finally(dynamicTableInstance?.reload);
-    }
-  };
-
-  const onTreeSelect = (id: number) => {
-    selectedDeptId.value = id;
-    dynamicTableInstance?.reload();
-  };
-  const onDeptTreeInitData = (treeData) => {
-    deptTree.value = treeData;
-  };
-
-  const columns: TableColumnItem[] = [
-    ...baseColumns,
-    {
-      title: '操作',
-      width: 80,
-      dataIndex: 'ACTION',
-      fixed: 'right',
-      actions: ({ record }) => [
-        {
-          icon: 'ant-design:edit-outlined',
-          tooltip: '编辑用户资料',
-          auth: {
-            perm: 'system:user:update',
-            effect: 'disable',
-          },
-          onClick: () => openUserModal(record),
-        },
-        {
-          icon: 'ant-design:delete-outlined',
-          color: 'red',
-          tooltip: '删除此账号',
-          auth: 'system:user:delete',
-          popConfirm: {
-            title: '你确定要删除吗？',
-            placement: 'left',
-            onConfirm: () => delRowConfirm(record.id),
-          },
-        },
-      ],
-    },
-  ];
+watch(
+  () => searchFormParams.deptId,
+  () => {
+    onSearch();
+  }
+);
 </script>
 
-<style></style>
+<template>
+  <div class="main">
+    <tree class="w-[17%] float-left" v-model="searchFormParams.deptId" />
+    <div class="float-right w-[82%]">
+      <el-form
+        ref="formRef"
+        :inline="true"
+        :model="searchFormParams"
+        class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
+      >
+        <el-form-item label="用户编号：" prop="userId">
+          <el-input
+            v-model="searchFormParams.userId"
+            placeholder="请输入用户编号"
+            clearable
+            class="!w-[160px]"
+          />
+        </el-form-item>
+        <el-form-item label="用户名称：" prop="username">
+          <el-input
+            v-model="searchFormParams.username"
+            placeholder="请输入用户名称"
+            clearable
+            class="!w-[160px]"
+          />
+        </el-form-item>
+        <el-form-item label="手机号码：" prop="phoneNumber">
+          <el-input
+            v-model="searchFormParams.phoneNumber"
+            placeholder="请输入手机号码"
+            clearable
+            class="!w-[160px]"
+          />
+        </el-form-item>
+        <el-form-item label="状态：" prop="status">
+          <el-select
+            v-model="searchFormParams.status"
+            placeholder="请选择"
+            clearable
+            class="!w-[160px]"
+          >
+            <el-option
+              v-for="dict in useUserStoreHook().dictionaryList['common.status']"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(Search)"
+            :loading="pageLoading"
+            @click="onSearch"
+          >
+            搜索
+          </el-button>
+          <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
+            重置
+          </el-button>
+        </el-form-item>
+      </el-form>
+
+      <PureTableBar title="用户管理" :columns="columns" @refresh="onSearch">
+        <template #buttons>
+          <el-button
+            type="primary"
+            :icon="useRenderIcon(AddFill)"
+            @click="openDialog('新增')"
+          >
+            新增用户
+          </el-button>
+          <el-button
+            type="info"
+            :icon="useRenderIcon(Upload)"
+            @click="openUploadDialog"
+          >
+            导入
+          </el-button>
+          <el-button
+            type="warning"
+            :icon="useRenderIcon(Download)"
+            @click="exportAllExcel"
+          >
+            导出
+          </el-button>
+        </template>
+        <template v-slot="{ size, dynamicColumns }">
+          <pure-table
+            border
+            adaptive
+            align-whole="center"
+            table-layout="auto"
+            :loading="pageLoading"
+            :size="size"
+            :data="dataList"
+            :columns="dynamicColumns"
+            :pagination="pagination"
+            :paginationSmall="size === 'small' ? true : false"
+            :header-cell-style="{
+              background: 'var(--el-table-row-hover-bg-color)',
+              color: 'var(--el-text-color-primary)'
+            }"
+            @page-size-change="getList"
+            @page-current-change="getList"
+          >
+            <template #operation="{ row }">
+              <el-button
+                class="reset-margin"
+                link
+                type="primary"
+                :size="size"
+                @click="openDialog('编辑', row)"
+                :icon="useRenderIcon(EditPen)"
+              >
+                修改
+              </el-button>
+              <el-popconfirm title="是否确认删除?" @confirm="handleDelete(row)">
+                <template #reference>
+                  <el-button
+                    class="reset-margin"
+                    link
+                    type="primary"
+                    :size="size"
+                    :icon="useRenderIcon(Delete)"
+                  >
+                    删除
+                  </el-button>
+                </template>
+              </el-popconfirm>
+              <el-dropdown>
+                <el-button
+                  class="ml-3 mt-[2px]"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(More)"
+                />
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item>
+                      <el-button
+                        :class="buttonClass"
+                        link
+                        type="primary"
+                        :size="size"
+                        :icon="useRenderIcon(Password)"
+                        @click="openResetPasswordDialog(row)"
+                      >
+                        重置密码
+                      </el-button>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </template>
+          </pure-table>
+        </template>
+      </PureTableBar>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+:deep(.el-dropdown-menu__item i) {
+  margin: 0;
+}
+
+.search-form {
+  :deep(.el-form-item) {
+    margin-bottom: 12px;
+  }
+}
+</style>

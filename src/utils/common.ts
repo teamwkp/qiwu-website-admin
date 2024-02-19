@@ -1,207 +1,141 @@
-import dayjs from 'dayjs';
-import type { DataNode } from 'ant-design-vue/es/vc-tree-select/interface';
+import { PaginationProps, TableColumn } from "@pureadmin/table";
+import { Sort } from "element-plus";
+import { utils, writeFile } from "xlsx";
+import { message } from "./message";
+import { pinyin } from "pinyin-pro";
 
-/**
- * @description 处理首字母大写 abc => Abc
- * @param str
- */
-export const changeStr = (str: string) => {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-};
-
-/**
- * @description 随机生成颜色
- * @param {string} type
- * @return {string}
- */
-export const randomColor = (type: 'rgb' | 'hex' | 'hsl'): string => {
-  switch (type) {
-    case 'rgb':
-      return window.crypto.getRandomValues(new Uint8Array(3)).toString();
-    case 'hex':
-      return `#${Math.floor(Math.random() * 0xffffff)
-        .toString(16)
-        .padStart(6, `${Math.random() * 10}`)}`;
-    case 'hsl':
-      // 在25-95%范围内具有饱和度，在85-95%范围内具有亮度
-      return [360 * Math.random(), `${100 * Math.random()}%`, `${100 * Math.random()}%`].toString();
-  }
-};
-
-/**
- * 复制文本
- * @param text
- */
-export const copyText = (text: string) => {
-  const copyInput = document.createElement('input'); //创建一个input框获取需要复制的文本内容
-  copyInput.value = text;
-  document.body.appendChild(copyInput);
-  copyInput.select();
-  document.execCommand('copy');
-  copyInput.remove();
-};
-
-/**
- * @description 判断字符串是否是base64
- * @param {string} str
- */
-export const isBase64 = (str: string): boolean => {
-  if (str === '' || str.trim() === '') {
-    return false;
-  }
-  try {
-    return btoa(atob(str)) == str;
-  } catch (err) {
-    return false;
-  }
-};
-// 对象转JSON
-export const toJSON = (obj) => {
-  return JSON.stringify(obj, (_, value) => {
-    switch (true) {
-      case typeof value === 'undefined':
-        return 'undefined';
-      case typeof value === 'symbol':
-        return value.toString();
-      case typeof value === 'function':
-        return value.toString();
-      default:
-        break;
-    }
-    return value;
-  });
-};
-
-/***
- * @description 是否是生产环境
- */
-export const IS_PROD = import.meta.env.PROD;
-export const IS_DEV = import.meta.env.DEV;
-
-/***
- * @description 格式化日期
- * @param time
- */
-export const formatDate = (time) => dayjs(time).format('YYYY-MM-DD HH:mm:ss');
-
-/**
- *  @description 将一维数组转成树形结构数据
- * @param items
- * @param id
- * @param link
- */
-export const generateTree = (items, id = 0, link = 'parent') => {
-  return items
-    .filter((item) => item[link] == id)
-    .map((item) => ({
-      ...item,
-      slots: { title: 'name' },
-      children: generateTree(items, item.departmentid),
-    }));
-};
-
-/***
- * @description 原生加密明文
- * @param {string} plaintext
- */
-// const encryption = (plaintext: string) =>
-//   isBase64(plaintext) ? plaintext : window.btoa(window.encodeURIComponent(plaintext));
-
-/**
- * @description 原生解密
- * @param {string} ciphertext
- */
-// const decryption = (ciphertext: string) =>
-//   isBase64(ciphertext) ? window.decodeURIComponent(window.atob(ciphertext)) : ciphertext;
-
-// const viewsModules = import.meta.glob('../views/**/*.vue');
-
-// /**
-//  *
-//  * @param {string} viewPath 页面的路径 `@/view/${viewPath}`
-//  * @param {string} viewFileName  页面文件 默认 index.vue
-//  */
-// export const getAsyncPage = (viewPath: string, viewFileName = 'index') => {
-//   if (viewPath.endsWith('.vue')) {
-//     const p = `../views/${viewPath}`;
-//     const pathKey = Object.keys(viewsModules).find((key) => key === p)!;
-//     // console.log('viewsModules[pathKey]', viewsModules[pathKey]);
-//     return viewsModules[pathKey];
-//   } else {
-//     const p = `../views/${viewPath}/${viewFileName}.vue`;
-//     const pathKey = Object.keys(viewsModules).find((key) => key === p)!;
-//     // console.log('viewsModules[pathKey]', viewsModules[pathKey]);
-//     return viewsModules[pathKey];
-//     // return () => import(/* @vite-ignore */ `../views/${viewPath}/${viewFileName}.vue`);
-//   }
-// };
-
-/**
- * / _ - 转换成驼峰并将view替换成空字符串
- * @param {*} name name
- */
-export const toHump = (name) => {
-  return name
-    .replace(/[-/_](\w)/g, (_, letter) => {
-      return letter.toUpperCase();
-    })
-    .replace('views', '');
-};
-
-/** 模拟异步请求，实用性不高，主要用于demo模拟请求 */
-export const waitTime = <T>(time = 100, data: any = true): Promise<T> => {
-  const { promise, resolve } = Promise.withResolvers<T>();
-  setTimeout(() => {
-    resolve(data);
-  }, time);
-  return promise;
-};
-
-export function findPath<T extends Key>(
-  tree: Recordable[],
-  targetId: T,
-  field = 'id',
-  currentPath: T[] = [],
-): T[] | null {
-  // 遍历树中的每个节点
-  for (const node of tree) {
-    // 将当前节点的 ID 添加到路径中
-    const path = [...currentPath, node[field]];
-
-    // 如果找到目标节点，返回路径
-    if (node.id === targetId) {
-      return path;
+export class CommonUtils {
+  static getBeginTimeSafely(timeRange: string[]): string {
+    if (timeRange == null) {
+      return undefined;
     }
 
-    // 如果当前节点有子节点，则递归查找子节点
-    if (node.children && node.children.length > 0) {
-      const childPath = findPath(node.children, targetId, field, path);
-      if (childPath) {
-        return childPath;
+    if (timeRange.length <= 0) {
+      return undefined;
+    }
+
+    if (timeRange[0] == null) {
+      return undefined;
+    }
+
+    return timeRange[0];
+  }
+
+  static getEndTimeSafely(timeRange: string[]): string {
+    if (timeRange == null) {
+      return undefined;
+    }
+
+    if (timeRange.length <= 1) {
+      return undefined;
+    }
+
+    if (timeRange[1] == null) {
+      return undefined;
+    }
+
+    return timeRange[1];
+  }
+
+  static fillPaginationParams(
+    baseQuery: BasePageQuery,
+    pagination: PaginationProps
+  ) {
+    baseQuery.pageNum = pagination.currentPage;
+    baseQuery.pageSize = pagination.pageSize;
+  }
+
+  static fillSortParams(baseQuery: BasePageQuery, sort: Sort) {
+    if (sort == null) {
+      return;
+    }
+    baseQuery.orderColumn = sort.prop;
+    baseQuery.orderDirection = sort.order;
+  }
+
+  /** 适用于BaseQuery中固定的时间参数  beginTime和endTime参数 */
+  static fillTimeRangeParams(baseQuery: any, timeRange: string[]) {
+    if (timeRange == null || timeRange.length == 0 || timeRange === undefined) {
+      baseQuery["beginTime"] = undefined;
+      baseQuery["endTime"] = undefined;
+      return;
+    }
+
+    if (baseQuery == null || baseQuery === undefined) {
+      return;
+    }
+
+    baseQuery["beginTime"] = CommonUtils.getBeginTimeSafely(timeRange);
+    baseQuery["endTime"] = CommonUtils.getEndTimeSafely(timeRange);
+  }
+
+  static exportExcel(
+    columns: TableColumnList,
+    originalDataList: any[],
+    excelName: string
+  ) {
+    if (
+      !Array.isArray(columns) ||
+      !Array.isArray(originalDataList) ||
+      typeof excelName !== "string"
+    ) {
+      message("参数异常，导出失败", { type: "error" });
+      return;
+    }
+
+    // columns和dataList为空的话 弹出提示 不执行导出
+    if (columns.length === 0 || originalDataList.length === 0) {
+      message("无法导出空列表", { type: "warning" });
+      return;
+    }
+
+    const titleList: string[] = [];
+    const dataKeyList: string[] = [];
+    // 把columns里面的label取出来作为excel的列标题，把prop取出来等下从dataList里面根据作为key取对象中的值
+    columns.forEach((column: TableColumn) => {
+      if (column.label && column.prop) {
+        titleList.push(column.label);
+        dataKeyList.push(column.prop as string);
       }
-    }
+    });
+
+    const excelDataList: string[][] = originalDataList.map(item => {
+      const arr = [];
+      dataKeyList.forEach(dataKey => {
+        arr.push(item[dataKey]);
+      });
+      return arr;
+    });
+
+    excelDataList.unshift(titleList);
+
+    const workSheet = utils.aoa_to_sheet(excelDataList);
+    const workBook = utils.book_new();
+    utils.book_append_sheet(workBook, workSheet, excelName);
+    writeFile(workBook, `${excelName}.xlsx`);
   }
 
-  // 没有找到目标节点，返回 null
-  return null;
-}
+  static paginateList(dataList: any[], pagination: PaginationProps): any[] {
+    // 计算起始索引
+    const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
 
-export const str2tree = (str: string, treeData: DataNode[] = [], separator = ':') => {
-  return str.split(separator).reduce((prev, curr, currentIndex, arr) => {
-    const path = arr.slice(0, currentIndex + 1).join(':');
-    const index = prev.findIndex((item) => item?.path === path);
-    if (index !== -1) {
-      return prev[index].children;
-    } else {
-      const item: DataNode = {
-        // key: curr,
-        path,
-        value: curr,
-        label: curr,
-        children: [],
-      };
-      prev.push(item);
-      return item.children!;
+    // 截取数组
+    const endIndex = startIndex + pagination.pageSize;
+    const paginatedList = dataList.slice(startIndex, endIndex);
+
+    // 返回截取后的数组
+    return paginatedList;
+  }
+
+  static toPinyin(chineseStr: string): string {
+    if (chineseStr == null || chineseStr === undefined || chineseStr === "") {
+      return chineseStr;
     }
-  }, treeData);
-};
+
+    const pinyinStr = pinyin(chineseStr, { toneType: "none" });
+    return pinyinStr.replace(/\s/g, "");
+  }
+
+  // 私有构造函数，防止类被实例化
+  private constructor() {}
+}

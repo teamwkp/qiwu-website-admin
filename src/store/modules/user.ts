@@ -1,145 +1,88 @@
-import { ref, watch } from 'vue';
-import { defineStore } from 'pinia';
-import type { RouteRecordRaw } from 'vue-router';
-import { store } from '@/store';
-import Api from '@/api/';
-import { ACCESS_TOKEN_KEY } from '@/enums/cacheEnum';
-import { Storage } from '@/utils/Storage';
-import { resetRouter } from '@/router';
-import { generateDynamicRoutes } from '@/router/helper/routeHelper';
-import { uniqueSlash } from '@/utils/urlUtils';
+import { defineStore } from "pinia";
+import { store } from "@/store";
+import { userType } from "./types";
+import { routerArrays } from "@/layout/types";
+import { router, resetRouter } from "@/router";
+import { storageSession } from "@pureadmin/utils";
+import { useMultiTagsStoreHook } from "@/store/modules/multiTags";
+import { removeToken, sessionKey } from "@/utils/auth";
+import { DictionaryData, TokenDTO } from "@/api/common/login";
+import { storageLocal } from "@pureadmin/utils";
 
-export type MessageEvent = {
-  data?: any;
-  type?: 'ping' | 'close' | 'updatePermsAndMenus';
-};
+const dictionaryListKey = "ag-dictionary-list";
+const dictionaryMapKey = "ag-dictionary-map";
 
-export const useUserStore = defineStore('user', () => {
-  let eventSource: EventSource | null = null;
-  const token = ref(Storage.get(ACCESS_TOKEN_KEY, null));
-  const name = ref('amdin');
-  const perms = ref<string[]>([]);
-  const menus = ref<RouteRecordRaw[]>([]);
-  const userInfo = ref<Partial<API.UserEntity>>({});
-  const serverConnected = ref(true);
+export const useUserStore = defineStore({
+  id: "ag-user",
+  state: (): userType => ({
+    // 用户名
+    username:
+      storageSession().getItem<TokenDTO>(sessionKey)?.currentUser.userInfo
+        .username ?? "",
+    // 页面级别权限
+    roles: storageSession().getItem<TokenDTO>(sessionKey)?.currentUser.roleKey
+      ? [storageSession().getItem<TokenDTO>(sessionKey)?.currentUser.roleKey]
+      : [],
+    dictionaryList:
+      storageLocal().getItem<Map<String, Array<DictionaryData>>>(
+        dictionaryListKey
+      ) ?? new Map(),
+    dictionaryMap:
+      storageLocal().getItem<Map<String, Map<String, DictionaryData>>>(
+        dictionaryMapKey
+      ) ?? new Map(),
+    currentUserInfo:
+      storageSession().getItem<TokenDTO>(sessionKey)?.currentUser.userInfo ?? {}
+  }),
+  actions: {
+    /** 存储用户名 */
+    SET_USERNAME(username: string) {
+      /** TODO 这里不是应该再进一步存到sessionStorage中吗 */
+      this.username = username;
+    },
+    /** 存储角色 */
+    SET_ROLES(roles: Array<string>) {
+      this.roles = roles;
+    },
+    /** 存储系统内的字典值 并拆分为Map形式和List形式 */
+    SET_DICTIONARY(dictionary: Map<String, Array<DictionaryData>>) {
+      /** 由于localStorage不能存储Map对象,所以用Obj来装载数据 */
+      const dictionaryMapTmp = {};
 
-  watch(serverConnected, (val) => {
-    if (val) {
-      initServerMsgListener();
-    }
-  });
-
-  const closeEventSource = () => {
-    serverConnected.value = false;
-    eventSource?.close();
-    eventSource = null;
-  };
-
-  /** 监听来自服务端推送的消息 */
-  const initServerMsgListener = async () => {
-    if (eventSource) {
-      eventSource.close();
-    }
-    const uid = userInfo.value.id;
-    const sseUrl = uniqueSlash(
-      `${import.meta.env.VITE_BASE_API_URL}/api/sse/${uid}?token=${token.value}`,
-    );
-
-    eventSource = new EventSource(sseUrl);
-    // 处理 SSE 传递的数据
-    eventSource.onmessage = (event) => {
-      const { type } = JSON.parse(event.data) as MessageEvent;
-      // 服务器关闭 SSE 连接
-      if (type === 'close') {
-        closeEventSource();
+      for (const obj in dictionary) {
+        dictionaryMapTmp[obj] = dictionary[obj].reduce((map, dict) => {
+          map[dict.value] = dict;
+          return map;
+        }, {});
       }
-      // 当用户的权限及菜单有变更时，重新获取权限及菜单
-      else if (type === 'updatePermsAndMenus') {
-        fetchPermsAndMenus();
-      }
-      // console.log('eventSource', event.data);
-    };
-    eventSource.onerror = (err) => {
-      console.log('eventSource err', err);
-      closeEventSource();
-    };
-  };
 
-  const setServerConnectStatus = (isConnect: boolean) => {
-    serverConnected.value = isConnect;
-  };
+      /** 将字典分成List形式和Map形式 List便于下拉框展示 Map便于匹配值 */
+      this.dictionaryList = dictionary;
+      this.dictionaryMap = dictionaryMapTmp;
 
-  /** 清空token及用户信息 */
-  const resetToken = () => {
-    token.value = name.value = '';
-    perms.value = [];
-    menus.value = [];
-    userInfo.value = {};
-    Storage.clear();
-  };
-  /** 登录成功保存token */
-  const setToken = (_token: string) => {
-    token.value = _token;
-    // const ex = 7 * 24 * 60 * 60 * 1000;
-    Storage.set(ACCESS_TOKEN_KEY, token.value);
-  };
-  /** 登录 */
-  const login = async (params: API.LoginDto) => {
-    try {
-      const data = await Api.auth.authLogin(params);
-      setToken(data.token);
-      return afterLogin();
-    } catch (error) {
-      return Promise.reject(error);
+      storageLocal().setItem<Map<String, Array<DictionaryData>>>(
+        dictionaryListKey,
+        dictionary
+      );
+
+      storageLocal().setItem<Map<String, Map<String, DictionaryData>>>(
+        dictionaryMapKey,
+        dictionaryMapTmp as Map<String, Map<String, DictionaryData>>
+      );
+    },
+
+    /** 前端登出（不调用接口） */
+    logOut() {
+      this.username = "";
+      this.roles = [];
+      removeToken();
+      useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
+      resetRouter();
+      router.push("/login");
     }
-  };
-  /** 登录成功之后, 获取用户信息以及生成权限路由 */
-  const afterLogin = async () => {
-    try {
-      const { accountProfile } = Api.account;
-      // const wsStore = useWsStore();
-      const userInfoData = await accountProfile();
-
-      userInfo.value = userInfoData;
-
-      await fetchPermsAndMenus();
-      initServerMsgListener();
-    } catch (error) {
-      return Promise.reject(error);
-      // return logout();
-    }
-  };
-  /** 获取权限及菜单 */
-  const fetchPermsAndMenus = async () => {
-    const { accountPermissions, accountMenu } = Api.account;
-    // const wsStore = useWsStore();
-    const [menusData, permsData] = await Promise.all([accountMenu(), accountPermissions()]);
-    perms.value = permsData;
-    menus.value = generateDynamicRoutes(menusData as unknown as RouteRecordRaw[]);
-  };
-  /** 登出 */
-  const logout = async () => {
-    await Api.account.accountLogout();
-    closeEventSource();
-    resetToken();
-    resetRouter();
-  };
-
-  return {
-    token,
-    name,
-    perms,
-    menus,
-    userInfo,
-    login,
-    afterLogin,
-    logout,
-    resetToken,
-    setServerConnectStatus,
-  };
+  }
 });
 
-// 在组件setup函数外使用
-export function useUserStoreWithOut() {
+export function useUserStoreHook() {
   return useUserStore(store);
 }

@@ -1,23 +1,25 @@
 <template>
-  <ProConfigProvider>
-    <router-view #="{ Component }">
-      <component :is="Component" />
-    </router-view>
-    <LockScreen />
-  </ProConfigProvider>
+  <el-config-provider :locale="currentLocale">
+    <router-view />
+    <ReDialog />
+  </el-config-provider>
 </template>
 
-<script setup lang="ts">
-  import { watchEffect } from 'vue';
-  import { useRoute } from 'vue-router';
-  import { transformI18n } from './hooks/useI18n';
-  import { LockScreen } from '@/components/basic/lockscreen';
-
-  const route = useRoute();
-  watchEffect(() => {
-    if (route.meta?.title) {
-      // 翻译网页标题
-      document.title = transformI18n(route.meta.title);
+<script lang="ts">
+import { defineComponent } from "vue";
+import { ElConfigProvider } from "element-plus";
+import zhCn from "element-plus/lib/locale/lang/zh-cn";
+import { ReDialog } from "@/components/ReDialog";
+export default defineComponent({
+  name: "app",
+  components: {
+    [ElConfigProvider.name]: ElConfigProvider,
+    ReDialog
+  },
+  computed: {
+    currentLocale() {
+      return zhCn;
     }
-  });
+  }
+});
 </script>

@@ -1,136 +1,228 @@
+<script setup lang="ts">
+import { ref } from "vue";
+import { useRole } from "./utils/hook";
+import { PureTableBar } from "@/components/RePureTableBar";
+import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+
+import Delete from "@iconify-icons/ep/delete";
+import EditPen from "@iconify-icons/ep/edit-pen";
+import Search from "@iconify-icons/ep/search";
+import Refresh from "@iconify-icons/ep/refresh";
+import AddFill from "@iconify-icons/ri/add-circle-line";
+import { getRoleInfoApi, RoleDTO } from "@/api/system/role";
+import RoleFormModal from "@/views/system/role/role-form-modal.vue";
+import { ElMessage } from "element-plus";
+
+defineOptions({
+  name: "SystemRole"
+});
+
+const formRef = ref();
+const {
+  form,
+  loading,
+  columns,
+  dataList,
+  pagination,
+  onSearch,
+  resetForm,
+  menuTree,
+  getMenuTree,
+  handleDelete
+} = useRole();
+
+const opType = ref<"add" | "update">("add");
+const modalVisible = ref(false);
+const opRow = ref<RoleDTO>();
+async function openDialog(type: "add" | "update", row?: RoleDTO) {
+  debugger;
+  try {
+    await getMenuTree();
+    if (row) {
+      const { data } = await getRoleInfoApi(row.roleId);
+      row.selectedMenuList = data.selectedMenuList;
+      row.selectedDeptList = data.selectedDeptList;
+    }
+  } catch (e) {
+    console.error(e);
+    ElMessage.error((e as Error)?.message || "加载菜单失败");
+  }
+  opType.value = type;
+  opRow.value = row;
+  modalVisible.value = true;
+}
+</script>
 <template>
-  <div>
-    <DynamicTable
-      row-key="id"
-      header-title="角色管理"
-      title-tooltip="超级管理员默认拥有所有资源访问权限且不支持修改"
-      :data-request="Api.systemRole.roleList"
-      :columns="columns"
-      bordered
-      size="small"
+  <div class="main">
+    <el-form
+      ref="formRef"
+      :inline="true"
+      :model="form"
+      class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
     >
-      <template #toolbar>
-        <a-button
-          type="primary"
-          :disabled="!$auth('system:role:create')"
-          @click="openMenuModal({})"
+      <el-form-item label="角色名称：" prop="name">
+        <el-input
+          v-model="form.roleName"
+          placeholder="请输入角色名称"
+          clearable
+          class="!w-[200px]"
+        />
+      </el-form-item>
+      <el-form-item label="角色标识：" prop="code">
+        <el-input
+          v-model="form.roleKey"
+          placeholder="请输入角色标识"
+          clearable
+          class="!w-[180px]"
+        />
+      </el-form-item>
+      <el-form-item label="状态：" prop="status">
+        <el-select
+          v-model="form.status"
+          placeholder="请选择状态"
+          clearable
+          class="!w-[180px]"
         >
-          新增
-        </a-button>
+          <el-option label="已启用" value="1" />
+          <el-option label="已停用" value="0" />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(Search)"
+          :loading="loading"
+          @click="onSearch"
+        >
+          搜索
+        </el-button>
+        <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
+          重置
+        </el-button>
+      </el-form-item>
+    </el-form>
+
+    <PureTableBar
+      title="角色列表（仅演示，操作后不生效）"
+      :columns="columns"
+      @refresh="onSearch"
+    >
+      <template #buttons>
+        <el-button
+          type="primary"
+          :icon="useRenderIcon(AddFill)"
+          @click="openDialog('add')"
+        >
+          新增角色
+        </el-button>
       </template>
-    </DynamicTable>
+      <template v-slot="{ size, dynamicColumns }">
+        <pure-table
+          border
+          align-whole="center"
+          showOverflowTooltip
+          table-layout="auto"
+          :loading="loading"
+          :size="size"
+          adaptive
+          :data="dataList"
+          :columns="dynamicColumns"
+          :pagination="pagination"
+          :paginationSmall="size === 'small' ? true : false"
+          :header-cell-style="{
+            background: 'var(--el-table-row-hover-bg-color)',
+            color: 'var(--el-text-color-primary)'
+          }"
+          @selection-change="handleSelectionChange"
+          @page-size-change="handleSizeChange"
+          @page-current-change="handleCurrentChange"
+        >
+          <template #operation="{ row }">
+            <el-button
+              class="reset-margin"
+              link
+              type="primary"
+              :size="size"
+              :icon="useRenderIcon(EditPen)"
+              @click="openDialog('update', row)"
+            >
+              修改
+            </el-button>
+            <el-popconfirm
+              :title="`是否确认删除角色名称为${row.roleName}的这条数据`"
+              @confirm="handleDelete(row)"
+            >
+              <template #reference>
+                <el-button
+                  class="reset-margin"
+                  link
+                  type="primary"
+                  :size="size"
+                  :icon="useRenderIcon(Delete)"
+                >
+                  删除
+                </el-button>
+              </template>
+            </el-popconfirm>
+            <!-- <el-dropdown>
+              <el-button
+                class="ml-3 mt-[2px]"
+                link
+                type="primary"
+                :size="size"
+                :icon="useRenderIcon(More)"
+              />
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item>
+                    <el-button
+                      :class="buttonClass"
+                      link
+                      type="primary"
+                      :size="size"
+                      :icon="useRenderIcon(Menu)"
+                      @click="handleMenu"
+                    >
+                      菜单权限
+                    </el-button>
+                  </el-dropdown-item>
+                  <el-dropdown-item>
+                    <el-button
+                      :class="buttonClass"
+                      link
+                      type="primary"
+                      :size="size"
+                      :icon="useRenderIcon(Database)"
+                      @click="handleDatabase"
+                    >
+                      数据权限
+                    </el-button>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown> -->
+          </template>
+        </pure-table>
+      </template>
+    </PureTableBar>
+
+    <role-form-modal
+      v-model="modalVisible"
+      :type="opType"
+      :row="opRow"
+      :menu-options="menuTree"
+    />
   </div>
 </template>
 
-<script lang="ts" setup>
-  import { baseColumns, type TableListItem, type TableColumnItem } from './columns';
-  import { roleSchemas } from './formSchemas';
-  import { useTable } from '@/components/core/dynamic-table';
-  import { useFormModal } from '@/hooks/useModal/';
-  import Api from '@/api/';
+<style scoped lang="scss">
+:deep(.el-dropdown-menu__item i) {
+  margin: 0;
+}
 
-  defineOptions({
-    name: 'SystemPermissionRole',
-  });
-
-  const [DynamicTable, dynamicTableInstance] = useTable();
-
-  const [showModal] = useFormModal();
-
-  const getCheckedKeys = (checkedList: number[], menus: API.MenuItemInfo[], total = []) => {
-    return menus.reduce<number[]>((prev, curr) => {
-      if (curr.children?.length) {
-        getCheckedKeys(checkedList, curr.children, total);
-      } else {
-        if (checkedList.includes(curr.id)) {
-          prev.push(curr.id);
-        }
-      }
-      return prev;
-    }, total);
-  };
-
-  /**
-   * @description 打开新增/编辑弹窗
-   */
-  const openMenuModal = async (record: Partial<TableListItem>) => {
-    const [formRef] = await showModal({
-      modalProps: {
-        title: `${record.id ? '编辑' : '新增'}角色`,
-        width: '50%',
-        onFinish: async (values) => {
-          record.id && (values.roleId = record.id);
-          const menusRef = formRef?.compRefMap.get('menuIds')!;
-          const params = {
-            ...values,
-            menuIds: [...menusRef.halfCheckedKeys, ...menusRef.checkedKeys],
-          };
-          console.log('新增/编辑角色', params);
-          if (record.id) {
-            await Api.systemRole.roleUpdate({ id: record.id }, params);
-          } else {
-            await Api.systemRole.roleCreate(params);
-          }
-
-          dynamicTableInstance?.reload();
-        },
-      },
-      formProps: {
-        labelWidth: 100,
-        schemas: roleSchemas,
-      },
-    });
-
-    const menuTreeData = await Api.systemMenu.menuList({});
-
-    formRef?.updateSchema([
-      {
-        field: 'menuIds',
-        componentProps: { treeData: menuTreeData },
-      },
-    ]);
-    // 如果是编辑的话，需要获取角色详情
-    if (record.id) {
-      const roleInfo = await Api.systemRole.roleInfo({ id: record.id });
-
-      formRef?.setFieldsValue({
-        ...record,
-        menuIds: getCheckedKeys(roleInfo.menuIds, menuTreeData),
-      });
-    }
-  };
-  const delRowConfirm = async (record: TableListItem) => {
-    await Api.systemRole.roleDelete({ id: record.id });
-    dynamicTableInstance?.reload();
-  };
-
-  const columns: TableColumnItem[] = [
-    ...baseColumns,
-    {
-      title: '操作',
-      width: 130,
-      dataIndex: 'ACTION',
-      hideInSearch: true,
-      fixed: 'right',
-      actions: ({ record }) => [
-        {
-          label: '编辑',
-          auth: {
-            perm: 'system:role:update',
-            effect: 'disable',
-          },
-          onClick: () => openMenuModal(record),
-        },
-        {
-          label: '删除',
-          auth: 'system:role:delete',
-          popConfirm: {
-            title: '你确定要删除吗？',
-            placement: 'left',
-            onConfirm: () => delRowConfirm(record),
-          },
-        },
-      ],
-    },
-  ];
-</script>
+.search-form {
+  :deep(.el-form-item) {
+    margin-bottom: 12px;
+  }
+}
+</style>
