@@ -37,7 +37,8 @@ nextTick(() => {
     class="horizontal-header"
   >
     <div class="horizontal-header-left" @click="backTopMenu">
-      <img src="/logo.svg" alt="logo" />
+      <!-- <img src="/logo.svg" alt="logo" /> -->
+      <img src="@/assets/images/logo_round_icon.png" alt="logo" />
       <span>{{ title }}</span>
     </div>
     <el-menu
@@ -99,6 +100,7 @@ nextTick(() => {
   ::v-deep(.el-dropdown-menu__item) {
     display: inline-flex;
     flex-wrap: wrap;
+
     min-width: 100%;
   }
 }

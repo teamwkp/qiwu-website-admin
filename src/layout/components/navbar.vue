@@ -42,7 +42,7 @@ const {
 
     <div v-if="layout === 'vertical'" class="vertical-header-right">
       <!-- 菜单搜索 -->
-      <Search />
+      <!-- <Search /> -->
       <!-- 通知 -->
       <Notice id="header-notice" />
       <!-- 退出登录 -->
@@ -85,33 +85,42 @@ const {
 
 <style lang="scss" scoped>
 .navbar {
+  overflow: hidden;
+
   width: 100%;
   height: 48px;
-  overflow: hidden;
 
   .hamburger-container {
     float: left;
+
     height: 100%;
-    line-height: 48px;
+
     cursor: pointer;
+
+    line-height: 48px;
   }
 
   .vertical-header-right {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+
     min-width: 280px;
     height: 48px;
+
     color: #000000d9;
 
     .el-dropdown-link {
       display: flex;
       align-items: center;
       justify-content: space-around;
+
       height: 48px;
       padding: 10px;
-      color: #000000d9;
+
       cursor: pointer;
+
+      color: #000000d9;
 
       p {
         font-size: 14px;
@@ -120,6 +129,7 @@ const {
       img {
         width: 22px;
         height: 22px;
+
         border-radius: 50%;
       }
     }
@@ -127,6 +137,7 @@ const {
 
   .breadcrumb-container {
     float: left;
+
     margin-left: 16px;
   }
 }
@@ -137,6 +148,7 @@ const {
   ::v-deep(.el-dropdown-menu__item) {
     display: inline-flex;
     flex-wrap: wrap;
+
     min-width: 100%;
   }
 }

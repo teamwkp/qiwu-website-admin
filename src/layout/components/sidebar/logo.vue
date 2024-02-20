@@ -19,7 +19,8 @@ const { title } = useNav();
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
-        <img src="/logo.svg" alt="logo" />
+        <!-- <img src="/logo.svg" alt="logo" /> -->
+        <img src="@/assets/images/logo_round_icon.png" alt="logo" />
         <span class="sidebar-title">{{ title }}</span>
       </router-link>
       <router-link
@@ -29,7 +30,8 @@ const { title } = useNav();
         class="sidebar-logo-link"
         :to="getTopMenu()?.path ?? '/'"
       >
-        <img src="/logo.svg" alt="logo" />
+        <!-- <img src="/logo.svg" alt="logo" /> -->
+        <img src="@/assets/images/logo_round_icon.png" alt="logo" />
         <span class="sidebar-title">{{ title }}</span>
       </router-link>
     </transition>
@@ -39,32 +41,40 @@ const { title } = useNav();
 <style lang="scss" scoped>
 .sidebar-logo-container {
   position: relative;
+
+  overflow: hidden;
+
   width: 100%;
   height: 48px;
-  overflow: hidden;
 
   .sidebar-logo-link {
     display: flex;
-    flex-wrap: nowrap;
     align-items: center;
+    flex-wrap: nowrap;
+
     height: 100%;
 
     img {
       display: inline-block;
+
       height: 32px;
     }
 
     .sidebar-title {
       display: inline-block;
+      overflow: hidden;
+
       height: 32px;
       margin: 2px 0 0 12px;
-      overflow: hidden;
+
+      white-space: nowrap;
+      text-overflow: ellipsis;
+
+      color: $subMenuActiveText;
+
       font-size: 18px;
       font-weight: 600;
       line-height: 32px;
-      color: $subMenuActiveText;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
   }
 }

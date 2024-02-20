@@ -27,7 +27,7 @@ const defaultConfig: AxiosRequestConfig = {
   // 后端请求地址
   // TODO:
   // baseURL: VITE_APP_BASE_API,
-  baseURL: "http://192.168.0.100:8080",
+  baseURL: "https://m4669w4441.vicp.fun",
   headers: {
     Accept: "application/json, text/plain, */*",
     "Content-Type": "application/json",

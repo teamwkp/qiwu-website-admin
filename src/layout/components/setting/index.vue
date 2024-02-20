@@ -231,7 +231,7 @@ onBeforeMount(() => {
 
 <template>
   <panel>
-    <el-divider>主题</el-divider>
+    <!-- <el-divider>主题</el-divider>
     <el-switch
       v-model="dataTheme"
       inline-prompt
@@ -239,7 +239,7 @@ onBeforeMount(() => {
       :active-icon="dayIcon"
       :inactive-icon="darkIcon"
       @change="dataThemeChange"
-    />
+    /> -->
 
     <el-divider>导航栏模式</el-divider>
     <ul class="pure-theme">
@@ -297,7 +297,7 @@ onBeforeMount(() => {
       </el-tooltip>
     </ul>
 
-    <el-divider>主题色</el-divider>
+    <!-- <el-divider>主题色</el-divider>
     <ul class="theme-color">
       <li
         v-for="(item, index) in themeColors"
@@ -314,11 +314,11 @@ onBeforeMount(() => {
           <IconifyIconOffline :icon="Check" />
         </el-icon>
       </li>
-    </ul>
+    </ul> -->
 
     <el-divider>界面显示</el-divider>
     <ul class="setting">
-      <li>
+      <!-- <li>
         <span class="dark:text-white">灰色模式</span>
         <el-switch
           v-model="settings.greyVal"
@@ -328,8 +328,8 @@ onBeforeMount(() => {
           inactive-text="关"
           @change="greyChange"
         />
-      </li>
-      <li>
+      </li> -->
+      <!-- <li>
         <span class="dark:text-white">色弱模式</span>
         <el-switch
           v-model="settings.weakVal"
@@ -339,7 +339,7 @@ onBeforeMount(() => {
           inactive-text="关"
           @change="weekChange"
         />
-      </li>
+      </li> -->
       <li>
         <span class="dark:text-white">隐藏标签页</span>
         <el-switch
@@ -419,15 +419,18 @@ onBeforeMount(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
     margin: 25px;
   }
 }
 
 .pure-datatheme {
   display: block;
+
   width: 100%;
   height: 50px;
   padding-top: 25px;
+
   text-align: center;
 }
 
@@ -435,18 +438,23 @@ onBeforeMount(() => {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-around;
+
   width: 100%;
   height: 50px;
   margin-top: 25px;
 
   li {
     position: relative;
+
+    overflow: hidden;
+
     width: 18%;
     height: 45px;
-    overflow: hidden;
+
     cursor: pointer;
-    background: #f0f2f5;
+
     border-radius: 4px;
+    background: #f0f2f5;
     box-shadow: 0 1px 2.5px 0 rgb(0 0 0 / 18%);
 
     &:nth-child(1) {
@@ -454,6 +462,7 @@ onBeforeMount(() => {
         &:nth-child(1) {
           width: 30%;
           height: 100%;
+
           background: #1b2a47;
         }
 
@@ -461,8 +470,10 @@ onBeforeMount(() => {
           position: absolute;
           top: 0;
           right: 0;
+
           width: 70%;
           height: 30%;
+
           background: #fff;
           box-shadow: 0 0 1px #888;
         }
@@ -474,6 +485,7 @@ onBeforeMount(() => {
         &:nth-child(1) {
           width: 100%;
           height: 30%;
+
           background: #1b2a47;
           box-shadow: 0 0 1px #888;
         }
@@ -485,6 +497,7 @@ onBeforeMount(() => {
         &:nth-child(1) {
           width: 100%;
           height: 30%;
+
           background: #1b2a47;
           box-shadow: 0 0 1px #888;
         }
@@ -493,8 +506,10 @@ onBeforeMount(() => {
           position: absolute;
           bottom: 0;
           left: 0;
+
           width: 30%;
           height: 70%;
+
           background: #fff;
           box-shadow: 0 0 1px #888;
         }
@@ -506,20 +521,25 @@ onBeforeMount(() => {
 .theme-color {
   display: flex;
   justify-content: center;
+
   width: 100%;
   height: 40px;
   margin-top: 20px;
 
   li {
     float: left;
+
     width: 20px;
     height: 20px;
     margin-top: 8px;
     margin-right: 8px;
-    font-weight: 700;
-    text-align: center;
+
     cursor: pointer;
+    text-align: center;
+
     border-radius: 2px;
+
+    font-weight: 700;
 
     &:nth-child(2) {
       border: 1px solid #ddd;

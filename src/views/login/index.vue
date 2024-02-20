@@ -160,13 +160,14 @@ onBeforeUnmount(() => {
     <img :src="bg" class="wave" />
     <div class="absolute flex-c right-5 top-3">
       <!-- 主题 -->
-      <el-switch
+      <!-- <el-switch
         v-model="dataTheme"
         :active-icon="dayIcon"
         :inactive-icon="darkIcon"
         inline-prompt
         @change="dataThemeChange"
       />
+      -->
     </div>
     <div class="login-container">
       <div class="img">
@@ -176,7 +177,9 @@ onBeforeUnmount(() => {
       <div class="login-box">
         <div class="login-form">
           <!-- 登录窗口上面的LOGO -->
-          <avatar class="avatar" />
+          <!-- <avatar class="avatar" />-->
+          <!-- TODO -->
+          <img src="@/assets/images/logo_round_icon.png" />
           <Motion>
             <h2 class="outline-none">
               <TypeIt :cursor="false" :speed="150" :values="[title]" />
@@ -361,6 +364,13 @@ onBeforeUnmount(() => {
   .check-en {
     position: absolute;
     left: 20px;
+  }
+}
+
+.login-form {
+  img {
+    margin: 0 auto;
+    width: 60px;
   }
 }
 </style>
