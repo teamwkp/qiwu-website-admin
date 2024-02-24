@@ -18,7 +18,7 @@ const themeColors = {
   //   menuActiveBefore: "#4091f7"
   // },
   default: {
-    subMenuActiveText: "#409eff",
+    subMenuActiveText: "#1677ff",
     menuBg: "#fff",
     menuHover: "#e0ebf6",
     subMenuBg: "#fff",
@@ -26,7 +26,7 @@ const themeColors = {
     menuText: "#7a80b4",
     sidebarLogo: "#fff",
     menuTitleHover: "#000",
-    menuActiveBefore: "#4091f7"
+    menuActiveBefore: "#1677ff"
   },
     light: {
     subMenuActiveText: "#409eff",

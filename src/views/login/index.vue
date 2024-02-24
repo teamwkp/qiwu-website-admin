@@ -329,7 +329,7 @@ onBeforeUnmount(() => {
     <!--  底部  -->
     <div class="flex items-center justify-center h-full">
       <div class="flex flex-col items-center justify-center mb-3">
-        <span>Copyright © 2018-2023 Agileboot All Rights Reserved. </span>
+        <span>Copyright © 2018-2023 qiwu All Rights Reserved. </span>
         <el-link
           href="https://beian.miit.gov.cn"
           rel="external nofollow"

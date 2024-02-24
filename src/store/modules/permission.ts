@@ -14,20 +14,21 @@ export const usePermissionStore = defineStore({
     // 整体路由生成的菜单（静态、动态）
     wholeMenus: [],
     // 缓存页面keepAlive
-    cachePageList: []
+    cachePageList: [],
   }),
   actions: {
     /** 组装整体路由生成的菜单 */
     handleWholeMenus(routes: any[]) {
+      // TODO：生成菜单
       this.wholeMenus = filterNoPermissionTree(
         filterTree(ascending(this.constantMenus.concat(routes)))
       );
     },
     cacheOperate({ mode, name }: cacheType) {
-      const delIndex = this.cachePageList.findIndex(v => v === name);
+      const delIndex = this.cachePageList.findIndex((v) => v === name);
       switch (mode) {
         case "refresh":
-          this.cachePageList = this.cachePageList.filter(v => v !== name);
+          this.cachePageList = this.cachePageList.filter((v) => v !== name);
           break;
         case "add":
           this.cachePageList.push(name);
@@ -41,8 +42,9 @@ export const usePermissionStore = defineStore({
         let cacheLength = this.cachePageList.length;
         const nameList = getKeyList(useMultiTagsStoreHook().multiTags, "name");
         while (cacheLength > 0) {
-          nameList.findIndex(v => v === this.cachePageList[cacheLength - 1]) ===
-            -1 &&
+          nameList.findIndex(
+            (v) => v === this.cachePageList[cacheLength - 1]
+          ) === -1 &&
             this.cachePageList.splice(
               this.cachePageList.indexOf(this.cachePageList[cacheLength - 1]),
               1
@@ -55,8 +57,8 @@ export const usePermissionStore = defineStore({
     clearAllCachePage() {
       this.wholeMenus = [];
       this.cachePageList = [];
-    }
-  }
+    },
+  },
 });
 
 export function usePermissionStoreHook() {

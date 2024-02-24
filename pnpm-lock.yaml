@@ -8,7 +8,7 @@ dependencies:
     specifier: ^2.3.2
     version: 2.3.2(element-plus@2.3.6)
   '@pureadmin/utils':
-    specifier: ^1.9.6
+    specifier: 1.9.6
     version: 1.9.6(echarts@5.4.2)(vue@3.3.4)
   '@vueuse/core':
     specifier: ^10.2.0

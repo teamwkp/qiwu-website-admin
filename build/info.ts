@@ -17,15 +17,6 @@ export function viteBuildInfo(): Plugin {
       outDir = resolvedConfig.build?.outDir ?? "dist";
     },
     buildStart() {
-      console.log(
-        bold(
-          green(
-            `👏欢迎使用${blue(
-              "[Agileboot全栈项目]"
-            )}，如果您感觉不错，记得点击后面链接给个star哦💖 https://github.com/valarchie/agileboot-back-end`
-          )
-        )
-      );
       if (config.command === "build") {
         startTime = dayjs(new Date());
       }
@@ -45,9 +36,9 @@ export function viteBuildInfo(): Plugin {
                 )
               )
             );
-          }
+          },
         });
       }
-    }
+    },
   };
 }

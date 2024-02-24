@@ -3,7 +3,7 @@ import {
   RouteRecordRaw,
   RouteComponent,
   createWebHistory,
-  createWebHashHistory
+  createWebHashHistory,
 } from "vue-router";
 import { router } from "./index";
 import { isProxy, toRaw } from "vue";
@@ -14,7 +14,7 @@ import {
   isAllEmpty,
   intersection,
   storageSession,
-  isIncludeAllChildren
+  isIncludeAllChildren,
 } from "@pureadmin/utils";
 import { getConfig } from "@/config";
 import { menuType } from "@/layout/types";
@@ -55,12 +55,20 @@ function ascending(arr: any[]) {
 
 /** 过滤meta中showLink为false的菜单 */
 function filterTree(data: RouteComponent[]) {
+  // TODO:showLink逻辑关闭
   const newTree = cloneDeep(data).filter(
-    (v: { meta: { showLink: boolean } }) => v.meta?.showLink !== false
+    (v: { meta: { showLink: boolean } }) => String(v.meta?.showLink) !== "false"
   );
+  // const newTree = cloneDeep(data).filter(
+  //   (v: { meta: { showLink: boolean } }) => v.meta?.title
+  // );
+  // const newTree = cloneDeep(data).filter(
+  //   (v: { meta: { showLink: boolean } }) => v.meta?.title
+  // );
   newTree.forEach(
     (v: { children }) => v.children && (v.children = filterTree(v.children))
   );
+
   return newTree;
 }
 
@@ -84,8 +92,8 @@ function isOneOfArray(a: Array<string>, b: Array<string>) {
 
 /** 从sessionStorage里取出当前登陆用户的角色roles，过滤无权限的菜单 */
 function filterNoPermissionTree(data: RouteComponent[]) {
-  const roleKey =
-    storageSession().getItem<TokenDTO>(sessionKey).currentUser.roleKey;
+  const roleKey = storageSession().getItem<TokenDTO>(sessionKey).currentUser
+    .roleKey;
   const currentRoles = roleKey ? [roleKey] : [];
   const newTree = cloneDeep(data).filter((v: any) =>
     isOneOfArray(v.meta?.roles, currentRoles)
@@ -146,7 +154,7 @@ function addPathMatch() {
     router.addRoute({
       path: "/:pathMatch(.*)",
       name: "pathMatch",
-      redirect: "/error/404"
+      redirect: "/error/404",
     });
   }
 }
@@ -161,7 +169,7 @@ function handleAsyncRoutes(routeList) {
         // 防止重复添加路由
         if (
           router.options.routes[0].children.findIndex(
-            value => value.path === v.path
+            (value) => value.path === v.path
           ) !== -1
         ) {
           return;
@@ -173,7 +181,7 @@ function handleAsyncRoutes(routeList) {
           if (!router.hasRoute(v?.name)) router.addRoute(v);
           const flattenRouters: any = router
             .getRoutes()
-            .find(n => n.path === "/");
+            .find((n) => n.path === "/");
           router.addRoute(flattenRouters);
         }
       }
@@ -190,12 +198,12 @@ function initRouter() {
     const key = "async-routes";
     const asyncRouteList = storageSession().getItem(key) as any;
     if (asyncRouteList && asyncRouteList?.length > 0) {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         handleAsyncRoutes(asyncRouteList);
         resolve(router);
       });
     } else {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         getAsyncRoutes().then(({ data }) => {
           handleAsyncRoutes(cloneDeep(data));
           storageSession().setItem(key, data);
@@ -204,7 +212,7 @@ function initRouter() {
       });
     }
   } else {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       getAsyncRoutes().then(({ data }) => {
         handleAsyncRoutes(cloneDeep(data));
         resolve(router);
@@ -248,7 +256,7 @@ function formatTwoStageRoutes(routesList: RouteRecordRaw[]) {
         path: v.path,
         redirect: v.redirect,
         meta: v.meta,
-        children: []
+        children: [],
       });
     } else {
       newRoutesList[0]?.children.push({ ...v });
@@ -263,30 +271,30 @@ function handleAliveRoute({ name }: ToRouteType, mode?: string) {
     case "add":
       usePermissionStoreHook().cacheOperate({
         mode: "add",
-        name
+        name,
       });
       break;
     case "delete":
       usePermissionStoreHook().cacheOperate({
         mode: "delete",
-        name
+        name,
       });
       break;
     case "refresh":
       usePermissionStoreHook().cacheOperate({
         mode: "refresh",
-        name
+        name,
       });
       break;
     default:
       usePermissionStoreHook().cacheOperate({
         mode: "delete",
-        name
+        name,
       });
       useTimeoutFn(() => {
         usePermissionStoreHook().cacheOperate({
           mode: "add",
-          name
+          name,
         });
       }, 100);
   }
@@ -311,8 +319,8 @@ function addAsyncRoutes(arrRoutes: Array<RouteRecordRaw>) {
       // 避免渲染form.vue组件
       // 对后端传component组件路径和不传做兼容（如果后端传component组件路径，那么path可以随便写，如果不传，component组件路径会跟path保持一致）
       const index = v?.component
-        ? modulesRoutesKeys.findIndex(ev => ev.includes(v.component as any))
-        : modulesRoutesKeys.findIndex(ev => ev.includes(v.path));
+        ? modulesRoutesKeys.findIndex((ev) => ev.includes(v.component as any))
+        : modulesRoutesKeys.findIndex((ev) => ev.includes(v.path));
       v.component = modulesRoutes[modulesRoutesKeys[index]];
     }
     if (v?.children && v.children.length) {
@@ -385,5 +393,5 @@ export {
   handleAliveRoute,
   formatTwoStageRoutes,
   formatFlatteningRoutes,
-  filterNoPermissionTree
+  filterNoPermissionTree,
 };

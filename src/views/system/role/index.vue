@@ -35,7 +35,7 @@ const opType = ref<"add" | "update">("add");
 const modalVisible = ref(false);
 const opRow = ref<RoleDTO>();
 async function openDialog(type: "add" | "update", row?: RoleDTO) {
-  debugger;
+  // debugger;
   try {
     await getMenuTree();
     if (row) {
@@ -117,6 +117,9 @@ async function openDialog(type: "add" | "update", row?: RoleDTO) {
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
+        <!-- @selection-change="handleSelectionChange"
+          @page-size-change="handleSizeChange"
+          @page-current-change="handleCurrentChange"-->
         <pure-table
           border
           align-whole="center"
@@ -133,9 +136,6 @@ async function openDialog(type: "add" | "update", row?: RoleDTO) {
             background: 'var(--el-table-row-hover-bg-color)',
             color: 'var(--el-text-color-primary)'
           }"
-          @selection-change="handleSelectionChange"
-          @page-size-change="handleSizeChange"
-          @page-current-change="handleCurrentChange"
         >
           <template #operation="{ row }">
             <el-button

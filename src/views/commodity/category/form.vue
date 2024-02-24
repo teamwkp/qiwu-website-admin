@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import ReCol from "@/components/ReCol";
 import { formRules } from "./utils/rule";
-import { usePublicHooks } from "../hooks";
+// import { usePublicHooks } from "../hooks";
 import { MenuRequest } from "@/api/system/menu";
 import IconSelect from "@/components/ReIcon/src/Select.vue";
 
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<FormProps>(), {
 });
 
 const ruleFormRef = ref();
-const { switchStyle } = usePublicHooks();
+// const { switchStyle } = usePublicHooks();
 const newFormInline = ref(props.formInline);
 const deptOptions = ref(props.higherMenuOptions);
 
@@ -208,7 +208,7 @@ defineExpose({ getRef });
           />
         </el-form-item>
       </re-col> -->
-      <re-col :value="12" :xs="24" :sm="24">
+      <!-- <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="状态">
           <el-switch
             v-model="newFormInline.status"
@@ -220,7 +220,7 @@ defineExpose({ getRef });
             :style="switchStyle"
           />
         </el-form-item>
-      </re-col>
+      </re-col> -->
     </el-row>
     <el-row>
       <re-col :value="12" :xs="24" :sm="24">
