@@ -88,6 +88,9 @@ dependencies:
   vue-types:
     specifier: ^5.1.0
     version: 5.1.0(vue@3.3.4)
+  vxe-table:
+    specifier: ^4.5.20
+    version: 4.5.20(vue@3.3.4)(xe-utils@3.5.20)
   xlsx:
     specifier: ^0.18.5
     version: 0.18.5
@@ -2785,6 +2788,10 @@ packages:
       domhandler: 5.0.3
       entities: 4.5.0
     dev: true
+
+  /dom-zindex@1.0.1:
+    resolution: {integrity: sha512-M/MERVDZ8hguvjl6MAlLWSLYLS7PzEyXaTb5gEeJ+SF+e9iUC0sdvlzqe91MMDHBoy+nqw7wKcUOrDSyvMCrRg==}
+    dev: false
 
   /domelementtype@2.3.0:
     resolution: {integrity: sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==}
@@ -6784,6 +6791,17 @@ packages:
       '@vue/server-renderer': 3.3.4(vue@3.3.4)
       '@vue/shared': 3.3.4
 
+  /vxe-table@4.5.20(vue@3.3.4)(xe-utils@3.5.20):
+    resolution: {integrity: sha512-UC+z1ED3QE6Be/UN0390hSXMAseXg+com3fkX9q3tjfsCGFx7CjN9tLstuNtecn+ElkPGHqzRGtA3N5FTSv5Vw==}
+    peerDependencies:
+      vue: ^3.2.28
+      xe-utils: ^3.5.0
+    dependencies:
+      dom-zindex: 1.0.1
+      vue: 3.3.4
+      xe-utils: 3.5.20
+    dev: false
+
   /webpack-sources@3.2.3:
     resolution: {integrity: sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==}
     engines: {node: '>=10.13.0'}
@@ -6866,6 +6884,10 @@ packages:
       imurmurhash: 0.1.4
       signal-exit: 4.0.2
     dev: true
+
+  /xe-utils@3.5.20:
+    resolution: {integrity: sha512-dZewCp04O0xQ4JnUxlvRfxsBlV1vxrA9LCazGAFFeRWoTj0DU70OpqUNd8is1GnJXUL4ineZ4nywrEq/3Mbybg==}
+    dev: false
 
   /xlsx@0.18.5:
     resolution: {integrity: sha512-dmg3LCjBPHZnQp5/F/+nnTa+miPJxUXB6vtk42YjBBKayDNagxGEeIdWApkYPOf3Z3pm3k62Knjzp7lMeTEtFQ==}

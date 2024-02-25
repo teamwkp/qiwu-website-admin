@@ -1,0 +1,30 @@
+/*color*/
+// $vxe-font-color: #606266 !important;
+$vxe-primary-color: #1677ff;
+$vxe-table-header-background-color:#f5f7fa;
+// $vxe-success-color: #67c23a !important;
+// $vxe-info-color: #909399 !important;
+// $vxe-warning-color: #e6a23c !important;
+// $vxe-danger-color: #f56c6c !important;
+.vxe-table-wrap {
+
+}
+
+.vxe-grid--form-wrapper{
+margin-bottom: 10px;
+}
+.vxe-grid--toolbar-wrapper {
+  padding: 0px 10px;
+
+  background: #fff;
+}
+.vxe-table{
+  padding: 0px 10px;
+
+  background: #fff;
+}
+.vxe-table--body-wrapper{
+  // padding: 0px 10px;
+  background: #fff;
+}
+@import 'vxe-table/styles/index.scss';

@@ -131,13 +131,16 @@ const transitionMain = defineComponent({
 <style scoped>
 .app-main {
   position: relative;
+
+  overflow-x: hidden;
+
   width: 100%;
   height: 100vh;
-  overflow-x: hidden;
 }
 
 .app-main-nofixed-header {
   position: relative;
+
   width: 100%;
   min-height: 100vh;
 }

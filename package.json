@@ -58,6 +58,7 @@
     "vue-router": "^4.2.2",
     "vue-tippy": "^6.2.0",
     "vue-types": "^5.1.0",
+    "vxe-table": "^4.5.20",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

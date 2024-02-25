@@ -10,6 +10,8 @@ import { injectResponsiveStorage } from "@/utils/responsive";
 
 import Table from "@pureadmin/table";
 import PureDescriptions from "@pureadmin/descriptions";
+import VXETable from "vxe-table";
+import "vxe-table/lib/style.css";
 
 // 引入重置样式
 import "./style/reset.scss";
@@ -27,7 +29,7 @@ const app = createApp(App);
 
 // 自定义指令
 import * as directives from "@/directives";
-Object.keys(directives).forEach(key => {
+Object.keys(directives).forEach((key) => {
   app.directive(key, (directives as { [key: string]: Directive })[key]);
 });
 
@@ -35,7 +37,7 @@ Object.keys(directives).forEach(key => {
 import {
   IconifyIconOffline,
   IconifyIconOnline,
-  FontIcon
+  FontIcon,
 } from "./components/ReIcon";
 app.component("IconifyIconOffline", IconifyIconOffline);
 app.component("IconifyIconOnline", IconifyIconOnline);
@@ -45,7 +47,7 @@ app.component("FontIcon", FontIcon);
 import { Auth } from "@/components/ReAuth";
 app.component("Auth", Auth);
 
-getServerConfig(app).then(async config => {
+getServerConfig(app).then(async (config) => {
   app.use(router);
   await router.isReady();
   injectResponsiveStorage(app, config);
@@ -55,6 +57,8 @@ getServerConfig(app).then(async config => {
     .use(ElementPlus)
     // .use(useEcharts);
     .use(Table)
-    .use(PureDescriptions);
+    .use(PureDescriptions)
+    .use(VXETable);
+
   app.mount("#app");
 });
