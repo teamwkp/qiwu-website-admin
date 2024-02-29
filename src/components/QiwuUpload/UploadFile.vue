@@ -2,34 +2,30 @@
  * @Author       : liqiao
  * @Date         : 2024-02-27 09:39:52
  * @LastEditors  : liqiao
- * @LastEditTime : 2024-02-27 20:35:15
+ * @LastEditTime : 2024-02-28 16:16:28
  * @Description  : Do not edit
  * @FilePath     : /qiwu-website-admin/src/components/QiwuUpload/UploadFile.vue
 -->
 
 <script lang="ts" setup>
-import { ref } from "vue";
-import { Plus } from "@element-plus/icons-vue";
+import { ref, onMounted } from 'vue';
+import { Plus } from '@element-plus/icons-vue';
 
-import {
-  ElLoading,
-  type UploadProps,
-  type UploadUserFile,
-  ElMessage
-} from "element-plus";
-import { postUploadOss } from "@/api/common/index";
+import { ElLoading, type UploadProps, type UploadUserFile, ElMessage } from 'element-plus';
+import { postUploadOss } from '@/api/common/index';
 
 interface PropsModel {
   modelValue?: string; // 接受外部v-model传入的值,记录的AttachGUID值
   data?: Record<string, any>; //上传时附带的额外参数: {a:b}
   headers?: Headers | Record<string, any>; //设置上传的请求头部
-  listType?: "text" | "picture" | "picture-card"; //文件列表的类型
+  listType?: 'text' | 'picture' | 'picture-card'; //文件列表的类型
   multiple?: boolean; // 是否支持多选文件
   limit?: number; // 最大允许上传个数
   fileSize?: number; // 大小限制(MB)
   fileTypeList?: string[]; // 文件类型, 例如['png', 'jpg', 'jpeg']
   accept?: string;
   isShowTip?: boolean; // 是否显示提示
+  lang?: string; // 语言
   // changeUploadOperate: (imgList:string[]) => {};
   // showFileList?: boolean; //是否显示文件列表
   // withCredentials?: boolean; //支持发送 cookie 凭证信息
@@ -39,16 +35,17 @@ interface PropsModel {
   // disabled?: boolean; // 是否禁用
 }
 
-const emit = defineEmits(["changeUploadOperate"]);
+const emit = defineEmits(['changeUploadOperate']);
 
 const props = withDefaults(defineProps<PropsModel>(), {
-  listType: "picture-card",
+  listType: 'picture-card',
   multiple: false,
   limit: 1,
   fileSize: 2, //MB
-  fileTypeList: ["png", "jpg", "jpeg"],
-  accept: "image/*",
-  isShowTip: true
+  fileTypeList: ['png', 'jpg', 'jpeg'],
+  accept: 'image/*',
+  isShowTip: true,
+  lang: '',
 });
 
 const fileList = ref<UploadUserFile[]>([
@@ -62,27 +59,29 @@ const fileList = ref<UploadUserFile[]>([
   // }
 ]);
 
-const dialogImageUrl = ref("");
+const dialogImageUrl = ref('');
 const dialogVisible = ref(false);
 
 // 是否显示上传提示
 const showTip = ref(props.fileTypeList?.length > 0 || props.fileSize);
-console.log("🚀 ~ showTip:", showTip);
+const isShowAddBtn = ref(true);
+
+onMounted(() => {
+  emit('changeUploadOperate', ['1111'], props?.lang);
+});
 
 // 上传前校验
-const handleBeforeUpload = file => {
+const handleBeforeUpload = (file) => {
   // 格式是否正确
   if (props.fileTypeList.length) {
-    const fileName = file.name.split(".");
+    const fileName = file.name.split('.');
     const fileExt = fileName[fileName.length - 1];
-    console.log("🚀 ~ handleBeforeUpload ~ fileExt:", fileExt);
+    console.log('🚀 ~ handleBeforeUpload ~ fileExt:', fileExt);
     const isTypeOk = props.fileTypeList.indexOf(fileExt) >= 0;
     if (!isTypeOk) {
       ElMessage({
-        message: `文件格式不正确, 请上传${props.fileTypeList.join(
-          "/"
-        )}格式文件`,
-        type: "warning"
+        message: `文件格式不正确, 请上传${props.fileTypeList.join('/')}格式文件`,
+        type: 'warning',
       });
 
       return false;
@@ -95,7 +94,7 @@ const handleBeforeUpload = file => {
     if (!isLt) {
       ElMessage({
         message: `上传文件大小不能超过 ${props.fileSize} MB`,
-        type: "warning"
+        type: 'warning',
       });
       return false;
     }
@@ -103,19 +102,19 @@ const handleBeforeUpload = file => {
   return true;
 };
 
-const getFormData = file => {
+const getFormData = (file) => {
   const formData = new FormData();
-  formData.append("file", file);
-  formData.append("uploadType", "HOME");
+  formData.append('file', file);
+  formData.append('uploadType', 'HOME');
   return formData;
 };
 
 // 文件上传
-const uploadImg = async file => {
+const uploadImg = async (file) => {
   const loading = ElLoading.service({
     lock: true,
-    text: "上传中",
-    background: "rgba(0, 0, 0, 0.7)"
+    text: '上传中',
+    background: 'rgba(0, 0, 0, 0.7)',
   });
   const params = getFormData(file.file);
 
@@ -125,22 +124,28 @@ const uploadImg = async file => {
     const fileData = res.data;
 
     // 文件url
-    let current: any = fileList.value.find(z => z.uid == file.file.uid);
+    let current: any = fileList.value.find((z) => z.uid == file.file.uid);
     current.uploadUrl = fileData.url;
 
-    const currImgList = fileList?.value?.map((item: any) => {
-      console.log("🚀 ~ currImgList ~ item:", item);
+    fileList.value = fileList?.value?.map((item: any) => {
       return item.uploadUrl;
     });
+    console.log('🚀 ~ uploadImg ~ fileList.value?.length >= props?.limit:', fileList.value?.length >= props?.limit);
 
-    emit("changeUploadOperate", [fileData.url]);
+    if (fileList.value?.length >= props?.limit) {
+      isShowAddBtn.value = false;
+    } else {
+      isShowAddBtn.value = true;
+    }
+
+    emit('changeUploadOperate', [fileData.url], props?.lang);
   } else {
     // TODO:
     // remove(fileList.value, z => z.uid == file.file.uid);
 
     ElMessage({
-      message: res.msg || "发生错误，请稍后重试",
-      type: "warning"
+      message: res.msg || '发生错误，请稍后重试',
+      type: 'warning',
     });
   }
 
@@ -161,11 +166,11 @@ const uploadImg = async file => {
   //   });
 };
 
-const handleRemove: UploadProps["onRemove"] = (uploadFile, uploadFiles) => {
+const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
   console.log(uploadFile, uploadFiles);
 };
 
-const handlePictureCardPreview: UploadProps["onPreview"] = uploadFile => {
+const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
   dialogImageUrl.value = uploadFile.url!;
   dialogVisible.value = true;
 };
@@ -184,6 +189,7 @@ const handlePictureCardPreview: UploadProps["onPreview"] = uploadFile => {
     :before-upload="handleBeforeUpload"
     :on-preview="handlePictureCardPreview"
     :on-remove="handleRemove"
+    :class="{ uoloadSty: isShowAddBtn, disUoloadSty: !isShowAddBtn }"
   >
     <!-- TODO:限制上传 -->
     <el-icon v-if="fileList?.length < props?.limit"><Plus /></el-icon>
@@ -192,10 +198,12 @@ const handlePictureCardPreview: UploadProps["onPreview"] = uploadFile => {
       <div class="el-upload__tip" v-if="showTip">
         请上传
         <template v-if="fileSize">
-          大小不超过 <b style="color: #f56c6c">{{ fileSize }}MB</b>
+          大小不超过
+          <b class="text-amber-600">{{ fileSize }}MB</b>
         </template>
         <template v-if="fileTypeList">
-          格式为 <b style="color: #f56c6c">{{ fileTypeList.join("/") }}</b>
+          格式为
+          <b class="text-amber-600">{{ fileTypeList.join('/') }}</b>
         </template>
         的文件
       </div>
@@ -215,5 +223,12 @@ const handlePictureCardPreview: UploadProps["onPreview"] = uploadFile => {
 .el-upload-list--picture-card .el-upload-list__item {
   width: 100px;
   height: 100px;
+}
+
+.uoloadSty .el-upload--picture-card {
+  /* TODO: */
+}
+.disUoloadSty .el-upload--picture-card {
+  display: none; /* 上传按钮隐藏 */
 }
 </style>

@@ -1,22 +1,13 @@
-import Axios, {
-  AxiosInstance,
-  AxiosRequestConfig,
-  CustomParamsSerializer,
-} from "axios";
-import {
-  PureHttpError,
-  RequestMethods,
-  PureHttpResponse,
-  PureHttpRequestConfig,
-} from "./types.d";
-import { stringify } from "qs";
-import NProgress from "../progress";
-import { getToken, formatToken } from "@/utils/auth";
-import { message } from "../message";
-import { ElMessageBox } from "element-plus";
-import { router } from "@/router";
-import { removeToken } from "@/utils/auth";
-import { downloadByData } from "@pureadmin/utils";
+import Axios, { AxiosInstance, AxiosRequestConfig, CustomParamsSerializer } from 'axios';
+import { PureHttpError, RequestMethods, PureHttpResponse, PureHttpRequestConfig } from './types.d';
+import { stringify } from 'qs';
+import NProgress from '../progress';
+import { getToken, formatToken } from '@/utils/auth';
+import { message } from '../message';
+import { ElMessageBox } from 'element-plus';
+import { router } from '@/router';
+import { removeToken } from '@/utils/auth';
+import { downloadByData } from '@pureadmin/utils';
 // console.log("Utils:" + router);
 
 const { VITE_APP_BASE_API } = import.meta.env;
@@ -29,13 +20,13 @@ const defaultConfig: AxiosRequestConfig = {
   baseURL: VITE_APP_BASE_API,
   // baseURL: "http://47.97.111.46:9999",
   headers: {
-    Accept: "application/json, text/plain, */*",
-    "Content-Type": "application/json",
-    "X-Requested-With": "XMLHttpRequest",
+    Accept: 'application/json, text/plain, */*',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
   // 数组格式参数序列化（https://github.com/axios/axios/issues/5142）
   paramsSerializer: {
-    serialize: (stringify as unknown) as CustomParamsSerializer,
+    serialize: stringify as unknown as CustomParamsSerializer,
   },
 };
 
@@ -61,7 +52,8 @@ class PureHttp {
   private static retryOriginalRequest(config: PureHttpRequestConfig) {
     return new Promise((resolve) => {
       PureHttp.requests.push((token: string) => {
-        config.headers["Authorization"] = formatToken(token);
+        config.headers['Authorization'] = formatToken(token);
+        // config.headers['Content-Type'] = 'application/x-www-form-urlencoded';
         resolve(config);
       });
     });
@@ -74,7 +66,7 @@ class PureHttp {
         // 开启进度条动画
         NProgress.start();
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
-        if (typeof config.beforeRequestCallback === "function") {
+        if (typeof config.beforeRequestCallback === 'function') {
           config.beforeRequestCallback(config);
           return config;
         }
@@ -83,23 +75,18 @@ class PureHttp {
           return config;
         }
         /** 请求白名单，放置一些不需要token的接口（通过设置请求白名单，防止token过期后再请求造成的死循环问题） */
-        const whiteList = [
-          "/refreshToken",
-          "/login",
-          "/captchaImage",
-          "/getConfig",
-        ];
+        const whiteList = ['/refreshToken', '/login', '/captchaImage', '/getConfig'];
         return whiteList.some((v) => config.url.endsWith(v))
           ? config
           : new Promise((resolve) => {
               const data = getToken();
-              config.headers["Authorization"] = formatToken(data.token);
+              config.headers['Authorization'] = formatToken(data.token);
               resolve(config);
             });
       },
       (error) => {
         return Promise.reject(error);
-      }
+      },
     );
   }
 
@@ -114,7 +101,7 @@ class PureHttp {
         // 后台返回的二进制流
         if (response.data instanceof Blob) {
           // 返回二进制流的时候 可能出错  这时候返回的错误是Json格式
-          if (response.data.type === "application/json") {
+          if (response.data.type === 'application/json') {
             const text = await this.readBlobAsText(response.data);
             const json = JSON.parse(text);
             // 提取错误消息中的code和msg
@@ -132,34 +119,30 @@ class PureHttp {
 
         // 如果不存在code说明后端格式有问题
         if (!code) {
-          msg = "服务器返回数据结构有误";
+          msg = '服务器返回数据结构有误';
         }
 
         // 请求返回失败时，有业务错误时，弹出错误提示
         if (response.data.code !== 0) {
           // token失效时弹出过期提示
           if (response.data.code === 106) {
-            ElMessageBox.confirm(
-              "登录状态已过期，您可以继续留在该页面，或者重新登录",
-              "系统提示",
-              {
-                confirmButtonText: "重新登录",
-                cancelButtonText: "取消",
-                type: "warning",
-              }
-            )
+            ElMessageBox.confirm('登录状态已过期，您可以继续留在该页面，或者重新登录', '系统提示', {
+              confirmButtonText: '重新登录',
+              cancelButtonText: '取消',
+              type: 'warning',
+            })
               .then(() => {
                 removeToken();
-                router.push("/login");
+                router.push('/login');
               })
               .catch(() => {
-                message("取消重新登录", { type: "info" });
+                message('取消重新登录', { type: 'info' });
               });
             NProgress.done();
             return Promise.reject(msg);
           } else {
             // 其余情况弹出错误提示框
-            message(msg, { type: "error" });
+            message(msg, { type: 'error' });
             NProgress.done();
             return Promise.reject(msg);
           }
@@ -169,7 +152,7 @@ class PureHttp {
         // 关闭进度条动画
         NProgress.done();
         // 优先判断post/get等方法是否传入回调，否则执行初始化设置等回调
-        if (typeof $config.beforeResponseCallback === "function") {
+        if (typeof $config.beforeResponseCallback === 'function') {
           $config.beforeResponseCallback(response);
           return response.data;
         }
@@ -186,7 +169,7 @@ class PureHttp {
         NProgress.done();
         // 所有的响应异常 区分来源为取消请求/非取消请求
         return Promise.reject($error);
-      }
+      },
     );
   }
 
@@ -195,7 +178,7 @@ class PureHttp {
     method: RequestMethods,
     url: string,
     param?: AxiosRequestConfig,
-    axiosConfig?: PureHttpRequestConfig
+    axiosConfig?: PureHttpRequestConfig,
   ): Promise<T> {
     const config = {
       method,
@@ -214,15 +197,11 @@ class PureHttp {
         .catch((error) => {
           // 某些情况网络失效，此时直接进入error流程，所以在这边也进行拦截
           if (error.response && error.response.status >= 500) {
-            message("网络异常", { type: "error" });
+            message('网络异常', { type: 'error' });
           }
 
-          if (
-            error.response &&
-            error.response.status >= 400 &&
-            error.response.status < 500
-          ) {
-            message("请求接口不存在", { type: "error" });
+          if (error.response && error.response.status >= 400 && error.response.status < 500) {
+            message('请求接口不存在', { type: 'error' });
           }
 
           reject(error);
@@ -239,37 +218,32 @@ class PureHttp {
         resolve(text);
       };
       reader.onerror = reject;
-      reader.readAsText(blob, "UTF-8");
+      reader.readAsText(blob, 'UTF-8');
     });
   }
 
   /** 单独抽离的post工具函数 */
-  public post<T, P>(
-    url: string,
-    params?: AxiosRequestConfig<T>,
-    config?: PureHttpRequestConfig
-  ): Promise<P> {
-    return this.request<P>("post", url, params, config);
+  public post<T, P>(url: string, params?: AxiosRequestConfig<T>, config?: PureHttpRequestConfig): Promise<P> {
+    return this.request<P>('post', url, params, config);
   }
 
   /** 单独抽离的get工具函数 */
   public get<T, P>(
     url: string,
     params?: AxiosRequestConfig<T>,
-    config?: PureHttpRequestConfig
+    // data?: AxiosRequestConfig<T>,
+    config?: PureHttpRequestConfig,
   ): Promise<P> {
-    return this.request<P>("get", url, params, config);
+    // console.log('🚀 ~ PureHttp ~ get:', data, config);
+    return this.request<P>('get', url, { params }, config);
+    // return this.request<P>('get', url, data, config);
   }
 
   /** download文件方法 从后端获取文件流 */
-  public download(
-    url: string,
-    fileName: string,
-    params?: AxiosRequestConfig
-  ): void {
+  public download(url: string, fileName: string, params?: AxiosRequestConfig): void {
     this.get(url, params, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      responseType: "blob",
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      responseType: 'blob',
     }).then((data: Blob) => {
       downloadByData(data, fileName);
     });
