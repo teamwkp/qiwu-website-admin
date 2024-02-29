@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import ReCol from "@/components/ReCol";
-import { formRules } from "./utils/rule";
-import { usePublicHooks } from "../hooks";
-import { MenuRequest } from "@/api/system/menu";
-import IconSelect from "@/components/ReIcon/src/Select.vue";
+import { ref, computed } from 'vue';
+import ReCol from '@/components/ReCol';
+import { formRules } from './utils/rule';
+import { usePublicHooks } from '../hooks';
+import { MenuRequest } from '@/api/system/menu';
+import IconSelect from '@/components/ReIcon/src/Select.vue';
 
 interface FormProps {
   formInline: MenuRequest;
@@ -16,16 +16,16 @@ const props = withDefaults(defineProps<FormProps>(), {
   formInline: () => ({
     id: 0,
     parentId: 0,
-    menuName: "",
-    routerName: "",
-    path: "",
+    menuName: '',
+    routerName: '',
+    path: '',
     status: 1,
     isButton: undefined,
-    permission: "",
+    permission: '',
     menuType: undefined,
-    meta: {}
+    meta: {},
   }),
-  higherMenuOptions: () => []
+  higherMenuOptions: () => [],
 });
 
 const ruleFormRef = ref();
@@ -34,7 +34,7 @@ const newFormInline = ref(props.formInline);
 const deptOptions = ref(props.higherMenuOptions);
 
 const typeName = computed(() => {
-  return newFormInline.value.isButton ? "按钮" : "菜单";
+  return newFormInline.value.isButton ? '按钮' : '菜单';
 });
 
 function getRef() {
@@ -45,12 +45,7 @@ defineExpose({ getRef });
 </script>
 
 <template>
-  <el-form
-    ref="ruleFormRef"
-    :model="newFormInline"
-    :rules="formRules"
-    label-width="82px"
-  >
+  <el-form ref="ruleFormRef" :model="newFormInline" :rules="formRules" label-width="82px">
     <el-row :gutter="30">
       <re-col>
         <el-form-item label="父菜单">
@@ -62,7 +57,7 @@ defineExpose({ getRef });
               value: 'id',
               label: 'menuName',
               emitPath: false,
-              checkStrictly: true
+              checkStrictly: true,
             }"
             clearable
             placeholder="请选择父菜单（不选则为根目录菜单）"
@@ -77,10 +72,7 @@ defineExpose({ getRef });
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="类型">
-          <el-radio-group
-            v-model="newFormInline.isButton"
-            :disabled="newFormInline.id !== 0"
-          >
+          <el-radio-group v-model="newFormInline.isButton" :disabled="newFormInline.id !== 0">
             <el-radio :label="false">菜单</el-radio>
             <el-radio :label="true">按钮</el-radio>
           </el-radio-group>
@@ -89,10 +81,7 @@ defineExpose({ getRef });
       <template v-if="newFormInline.isButton === false">
         <re-col :value="24">
           <el-form-item label="菜单类型">
-            <el-radio-group
-              v-model="newFormInline.menuType"
-              :disabled="newFormInline.id !== 0"
-            >
+            <el-radio-group v-model="newFormInline.menuType" :disabled="newFormInline.id !== 0">
               <el-radio :label="1">页面</el-radio>
               <el-radio :label="2">目录</el-radio>
               <el-radio :label="3">内嵌Iframe</el-radio>
@@ -112,11 +101,7 @@ defineExpose({ getRef });
     <el-row :gutter="30">
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item :label="`${typeName}名称`" prop="menuName">
-          <el-input
-            v-model="newFormInline.menuName"
-            clearable
-            :placeholder="`请输入${typeName}名称`"
-          />
+          <el-input v-model="newFormInline.menuName" clearable :placeholder="`请输入${typeName}名称`" />
         </el-form-item>
       </re-col>
       <re-col :value="12" :xs="24" :sm="24">
@@ -126,11 +111,7 @@ defineExpose({ getRef });
               <span>权限标识</span>
             </el-tooltip>
           </template>
-          <el-input
-            v-model="newFormInline.permission"
-            clearable
-            placeholder="请输入权限标识"
-          />
+          <el-input v-model="newFormInline.permission" clearable placeholder="请输入权限标识" />
         </el-form-item>
       </re-col>
     </el-row>
@@ -139,11 +120,7 @@ defineExpose({ getRef });
       <template v-if="newFormInline.menuType == 1">
         <re-col :value="12" :xs="24" :sm="24">
           <el-form-item label="页面路径" prop="path">
-            <el-input
-              v-model="newFormInline.path"
-              clearable
-              placeholder="请输入前端项目views文件内的页面路径"
-            />
+            <el-input v-model="newFormInline.path" clearable placeholder="请输入前端项目views文件内的页面路径" />
           </el-form-item>
         </re-col>
         <re-col :value="12">
@@ -159,11 +136,7 @@ defineExpose({ getRef });
       <template v-else-if="newFormInline.menuType == 2">
         <re-col :value="24" :xs="24" :sm="24">
           <el-form-item label="路由地址" prop="path">
-            <el-input
-              v-model="newFormInline.path"
-              clearable
-              placeholder="请输入目录的路由地址以/开头"
-            />
+            <el-input v-model="newFormInline.path" clearable placeholder="请输入目录的路由地址以/开头" />
           </el-form-item>
         </re-col>
       </template>
@@ -225,12 +198,7 @@ defineExpose({ getRef });
     <el-row>
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="排序">
-          <el-input-number
-            v-model="newFormInline.meta.rank"
-            :min="0"
-            :max="999"
-            controls-position="right"
-          />
+          <el-input-number v-model="newFormInline.meta.rank" :min="0" :max="999" controls-position="right" />
         </el-form-item>
       </re-col>
     </el-row>
