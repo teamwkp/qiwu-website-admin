@@ -6,3 +6,10 @@
  * @Description  : Do not edit
  * @FilePath     : /qiwu-website-admin/src/views/website/introduction/components/ModuleOne.vue
 -->
+<script setup></script>
+
+<template>
+  <div></div>
+</template>
+
+<style scoped></style>
