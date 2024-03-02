@@ -22,10 +22,11 @@ interface PropsModel {
   multiple?: boolean; // 是否支持多选文件
   limit?: number; // 最大允许上传个数
   fileSize?: number; // 大小限制(MB)
-  fileTypeList?: string[]; // 文件类型, 例如['png', 'jpg', 'jpeg']
+  fileTypeList?: any[]; // 文件类型, 例如['png', 'jpg', 'jpeg']
   accept?: string;
   isShowTip?: boolean; // 是否显示提示
   lang?: string; // 语言
+  reminderCont: string; // 上传文件的额外提示
   // changeUploadOperate: (imgList:string[]) => {};
   // showFileList?: boolean; //是否显示文件列表
   // withCredentials?: boolean; //支持发送 cookie 凭证信息
@@ -42,7 +43,7 @@ const props = withDefaults(defineProps<PropsModel>(), {
   multiple: false,
   limit: 1,
   fileSize: 2, //MB
-  fileTypeList: ['png', 'jpg', 'jpeg'],
+  fileTypeList: ['bmp', 'gif', 'jpg', 'jpeg', 'png'],
   accept: 'image/*',
   isShowTip: true,
   lang: '',
@@ -137,6 +138,7 @@ const uploadImg = async (file) => {
     } else {
       isShowAddBtn.value = true;
     }
+    console.log('🚀 ~ uploadImg ~ isShowAddBtn.value:', isShowAddBtn.value);
 
     emit('changeUploadOperate', [fileData.url], props?.lang);
   } else {
@@ -191,8 +193,8 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     :on-remove="handleRemove"
     :class="{ uoloadSty: isShowAddBtn, disUoloadSty: !isShowAddBtn }"
   >
-    <!-- TODO:限制上传 -->
-    <el-icon v-if="fileList?.length < props?.limit"><Plus /></el-icon>
+    <!-- TODO:限制上传 v-if="fileList?.length < props?.limit"-->
+    <el-icon><Plus /></el-icon>
 
     <template #tip>
       <div class="el-upload__tip" v-if="showTip">
@@ -205,8 +207,11 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
           格式为
           <b class="text-amber-600">{{ fileTypeList.join('/') }}</b>
         </template>
-        的文件
+        的文件；
       </div>
+      <template v-if="reminderCont">
+        <div>{{ reminderCont }}</div>
+      </template>
     </template>
   </el-upload>
 
@@ -227,6 +232,7 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 
 .uoloadSty .el-upload--picture-card {
   /* TODO: */
+  display: block;
 }
 .disUoloadSty .el-upload--picture-card {
   display: none; /* 上传按钮隐藏 */

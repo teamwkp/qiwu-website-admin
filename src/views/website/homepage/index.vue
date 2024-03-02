@@ -33,7 +33,12 @@ const ruleForm = ref<any>({
   module3: {
     indexProduct: { name: '', id: '' },
   },
+  // name: {
+  //   text:'中文',
+  //   key:'对应语言key'
+  // },
   name: '',
+  nameKey: '',
   region: '',
   count: '',
   desc: '',

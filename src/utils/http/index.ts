@@ -178,12 +178,14 @@ class PureHttp {
     method: RequestMethods,
     url: string,
     param?: AxiosRequestConfig,
+    data?: AxiosRequestConfig,
     axiosConfig?: PureHttpRequestConfig,
   ): Promise<T> {
     const config = {
       method,
       url,
       ...param,
+      ...data,
       ...axiosConfig,
     } as PureHttpRequestConfig;
 
@@ -223,20 +225,13 @@ class PureHttp {
   }
 
   /** 单独抽离的post工具函数 */
-  public post<T, P>(url: string, params?: AxiosRequestConfig<T>, config?: PureHttpRequestConfig): Promise<P> {
-    return this.request<P>('post', url, params, config);
+  public post<T, P>(url: string, data?: AxiosRequestConfig<T>, config?: PureHttpRequestConfig): Promise<P> {
+    return this.request<P>('post', url, data, config);
   }
 
   /** 单独抽离的get工具函数 */
-  public get<T, P>(
-    url: string,
-    params?: AxiosRequestConfig<T>,
-    // data?: AxiosRequestConfig<T>,
-    config?: PureHttpRequestConfig,
-  ): Promise<P> {
-    // console.log('🚀 ~ PureHttp ~ get:', data, config);
+  public get<T, P>(url: string, params?: AxiosRequestConfig<T>, config?: PureHttpRequestConfig): Promise<P> {
     return this.request<P>('get', url, { params }, config);
-    // return this.request<P>('get', url, data, config);
   }
 
   /** download文件方法 从后端获取文件流 */
