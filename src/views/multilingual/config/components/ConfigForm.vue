@@ -198,7 +198,7 @@ const changeUploadOperate = (imgList: string[], lang?: string) => {
         :rules="['configValueZh'].includes(item.key) ? RuleRequireInputTrue : RuleRequireInputFalse"
       >
         <el-input
-          v-if="ruleFormData.type === 1"
+          v-if="[1, 2].includes(ruleFormData.type)"
           type="textarea"
           v-model="ruleFormData[item.key]"
           :autosize="{ minRows: 1, maxRows: 6 }"
@@ -265,7 +265,8 @@ const changeUploadOperate = (imgList: string[], lang?: string) => {
 
 <style lang="scss" scoped>
 .config-form-view {
-  height: 500px;
   overflow-y: scroll;
+
+  height: 500px;
 }
 </style>
