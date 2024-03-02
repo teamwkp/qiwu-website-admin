@@ -35,7 +35,8 @@ const gridOptions = reactive({
   rowConfig: {
     keyField: 'id',
     isHover: true,
-    height: 100,
+    maxHeight: 80,
+    // height: 100,
   },
   columnConfig: {
     resizable: true,
