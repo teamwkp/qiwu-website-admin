@@ -14,7 +14,7 @@ export const RuleRequireInputTrue = {
 
 export const NavStatusList = [
   { label: '显示', value: 1 },
-  { label: '不显示', value: 0 },
+  { label: '隐藏', value: 0 },
 ];
 
 export const MultilingualConfigTypeList = [
@@ -32,6 +32,16 @@ export const MultilingualConfigTypeDict = {
   4: { name: '视频', type: 4 },
   5: { name: '链接', type: 5 },
 };
+
+export const ProductCategoryNavStatusDict = {
+  0: { name: '隐藏', type: 2 },
+  1: { name: '显示', type: 1 },
+};
+
+export const ProductCategoryNavStatusList = [
+  { label: '隐藏', value: 0 },
+  { label: '显示', value: 1 },
+];
 
 export const MultilingualConfigLangZhList = [
   {
@@ -97,4 +107,24 @@ export const MultilingualConfigLangList = [
     name: '意语',
     key: 'configValueIt',
   },
+];
+
+export const ProductMainRecommendDict = {
+  0: { name: '否', type: 2 },
+  1: { name: '是', type: 1 },
+};
+
+export const ProductMainRecommendList = [
+  { label: '否', value: 0 },
+  { label: '是', value: 1 },
+];
+
+export const ProductPublishStatusDict = {
+  0: { name: '下架', type: 2 },
+  1: { name: '上架', type: 1 },
+};
+
+export const ProductPublishStatusList = [
+  { label: '下架', value: 0 },
+  { label: '上架', value: 1 },
 ];

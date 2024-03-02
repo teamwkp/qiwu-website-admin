@@ -8,17 +8,12 @@
 -->
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 import { VXETable } from 'vxe-table';
-import XEUtils from 'xe-utils';
 
-import { MultiLanguageConfigListApi } from '@/api/multilingual.ts';
-// import VxeTableSelectTags from '@/components/Communal/VxeTableSelectTags.vue';
 import ConfigForm from './components/ConfigForm.vue';
-import { MultilingualConfigTypeDict, MultilingualConfigLangList } from '@/enums/selectEnum.ts';
-
-// import { useRouter } from '@/router/index';
-// const router = useRouter();
+import { ProductPublishStatusDict, ProductMainRecommendDict } from '@/enums/selectEnum.ts';
+import { ProductListApi, ProductCategoryDeleteCategoryApi } from '@/api/commodity';
 
 const isFormVisible = ref(false);
 const selectItem = ref(null);
@@ -30,12 +25,16 @@ const gridOptions = reactive({
   showHeaderOverflow: true,
   showOverflow: true,
   keepSource: true,
-  id: 'translation_list',
+  id: 'id',
+
+  // 'scroll-x': {
+  //   enabled: true,
+  // },
   // height: 600,
   rowConfig: {
     keyField: 'id',
     isHover: true,
-    height: 100,
+    height: 70,
   },
   columnConfig: {
     resizable: true,
@@ -55,7 +54,6 @@ const gridOptions = reactive({
     // expandRowKeys: 'id',
     // isRowExpandByRow: true,
     rowField: 'id',
-    // expandAll: true,
     // reserve: true,
   },
   sortConfig: {
@@ -67,7 +65,6 @@ const gridOptions = reactive({
   },
   pagerConfig: {
     enabled: true,
-    // currentPage: 1,
     pageSize: 10,
     pageSizes: [5, 10, 15, 20, 50, 100, 200, 500, 1000],
   },
@@ -76,11 +73,10 @@ const gridOptions = reactive({
     titleAlign: 'right',
     items: [
       {
-        field: 'keyword',
-        title: '值',
+        field: 'name',
+        title: '分类名称',
         span: 8,
-        // titlePrefix: { message: '名称', icon: 'vxe-icon-question-circle-fill' },
-        itemRender: { name: '$input', props: { placeholder: '请输入值' } },
+        itemRender: { name: '$input', props: { placeholder: '请输入分类名称' } },
       },
 
       {
@@ -98,31 +94,18 @@ const gridOptions = reactive({
     ],
   },
   toolbarConfig: {
-    // buttons: [
-    //   { code: "insert_actived", name: "新增" },
-    //   { code: "delete", name: "直接删除" },
-    //   { code: "mark_cancel", name: "删除/取消" },
-    //   { code: "save", name: "app.body.button.save", status: "success" },
-    // ],
     refresh: true,
-    // import: true,
-    // TODO：导出
-    // export: true,
     print: false,
     zoom: true,
     custom: true, // 显示自定义列按钮
     slots: {
       buttons: 'toolbar_buttons',
-      // tools: "toolbar_tools",
     },
   },
   proxyConfig: {
     seq: true,
-    // sort: true,
-    // filter: true,
     form: true,
     props: {
-      // 对应响应结果 Promise<{ result: [], page: { total: 100 } }>
       result: 'result',
       // total: "page.total", // 配置响应结果总页数字段
       total: 'total', // 配置响应结果总页数字段
@@ -148,58 +131,86 @@ const gridOptions = reactive({
           pageIndex: page.currentPage,
         };
         tableParams.value = queryParams;
-        // console.log('🚀 ~ filters.forEach ~ filters:', queryParams);
-        // console.log('🚀 ~ XEUtils.serialize(queryParams):', XEUtils.serialize(queryParams));
         return getDataOperate(queryParams);
       },
     },
   },
   columns: [
-    {
-      type: 'expand',
-      title: '查看多语言',
-      width: 100,
-      slots: { content: 'expand_cont' },
-    },
     // {
-    //   field: "name",
-    //   title: "Name",
-    //   sortable: true,
-    //   titlePrefix: { message: "名称必须填写！" },
-    //   editRender: { name: "input", attrs: { placeholder: "请输入名称" } },
+    //   type: 'expand',
+    //   title: '查看多语言',
+    //   width: 100,
+    //   slots: { content: 'expand_cont' },
     // },
     {
-      field: 'configKey',
-      title: 'key',
+      field: 'id',
+      title: 'ID',
+      width: 100,
     },
     {
-      field: 'configValueZh',
-      title: '值',
-      slots: { default: 'configValueZh_default' },
-    },
-    // TODO：
-    {
-      field: 'type',
-      title: '类型',
-      slots: { default: 'type_default' },
+      field: 'name',
+      title: '产品名称',
+      width: 120,
     },
     {
-      field: 'remark',
-      title: '描述',
+      field: 'subTitle',
+      title: '副标题',
+      width: 120,
+    },
+    {
+      field: 'navPic',
+      title: '产品导航图片',
+      slots: { default: 'navPic_default' },
+      width: 120,
+    },
+    {
+      field: 'mainRecommend',
+      title: '是否主推',
+      slots: { default: 'mainRecommend_default' },
+      width: 100,
+    },
+    {
+      field: 'recommendPic',
+      title: '产品推荐图片',
+      slots: { default: 'recommendPic_default' },
+      width: 120,
+    },
+    {
+      field: 'publishStatus',
+      title: '上架状态',
+      slots: { default: 'publishStatus_default' },
+      width: 100,
+    },
+
+    {
+      field: 'buyUrl',
+      title: '购买链接',
+      width: 160,
+    },
+    {
+      field: 'sort',
+      title: '排序',
+      width: 80,
+    },
+    {
+      field: 'description',
+      title: '产品描述',
+      width: 120,
     },
 
     {
       field: 'creatorName',
       title: '创建人',
+      width: 100,
     },
-    { field: 'createTime', title: '创建时间' },
+
+    { field: 'createTime', title: '创建时间', width: 100 },
 
     {
       field: 'operate',
       title: '操作',
-      width: 110,
-      // visible: false,
-      // sortable: true,
+      width: 150,
+      fixed: 'right',
       slots: { default: 'operate_default' },
     },
   ],
@@ -218,21 +229,9 @@ const gridOptions = reactive({
     showStatus: true,
   },
 });
-// TODO:是否需要
-const gridEvent = {
-  proxyQuery() {
-    console.log('数据代理查询事件');
-  },
-  proxyDelete() {
-    console.log('数据代理删除事件');
-  },
-  proxySave() {
-    console.log('数据代理保存事件');
-  },
-};
 
 const getDataOperate = async (queryParams) => {
-  const res = await MultiLanguageConfigListApi(queryParams);
+  const res = await ProductListApi(queryParams);
 
   let currData = {
     result: [],
@@ -241,7 +240,6 @@ const getDataOperate = async (queryParams) => {
 
   if (Number(res.code) === 0) {
     const result = res.data;
-    // const currList = result.rows?.map((item) => ({ ...item, children: [1, 2, 3] }));
     const currList = result.rows;
     currData['result'] = currList;
     currData['total'] = result.total;
@@ -264,14 +262,14 @@ const tableEditOperate = (row) => {
 
 const tableDeleteOperate = async (row) => {
   // type: confirm cancel
-  // const type = await VXETable.modal.confirm('您确定要删除吗？');
-  // if (type === 'confirm') {
-  //   const res = await ProductManualDelete({ id: row.id });
-  //   if (Number(res.code) === 0) {
-  //     reloadOperate();
-  //     VXETable.modal.message({ content: `操作成功`, status: 'success' });
-  //   }
-  // }
+  const type = await VXETable.modal.confirm('您确定要删除吗？');
+  if (type === 'confirm') {
+    const res = await ProductCategoryDeleteCategoryApi({ ids: [row.id] });
+    if (Number(res.code) === 0) {
+      reloadOperate();
+      VXETable.modal.message({ content: `操作成功`, status: 'success' });
+    }
+  }
 };
 
 const tableViewOperate = (row) => {
@@ -293,58 +291,33 @@ const reloadOperate = async () => {
 
 <template>
   <div class="app-container">
-    <vxe-grid ref="xGrid" v-bind="gridOptions" v-on="gridEvent">
+    <vxe-grid ref="xGrid" v-bind="gridOptions">
       <!--将表单放在工具栏中-->
       <template #toolbar_buttons>
         <vxe-button status="primary" @click="triggerAddOperate">新增</vxe-button>
-        <!-- <vxe-button status="primary" @click="triggerProofreadOperate">人工校对</vxe-button>
-        <vxe-button @click="triggerProxy('reload')">重置条件并重载</vxe-button>
-        <vxe-button @click="triggerProxy('mark_cancel')">删除/取消</vxe-button> -->
       </template>
 
-      <template #expand_cont="{ row, rowIndex }">
-        <div class="vxe-table-expand-view">
-          <el-descriptions v-if="[1, 5].includes(row.type)" title="多语言">
-            <el-descriptions-item v-for="item in MultilingualConfigLangList" :label="`${item.name}：`">
-              <span v-if="row[item.key]">{{ row[item.key] }}</span>
-              <span v-else>-</span>
-            </el-descriptions-item>
-          </el-descriptions>
-          <el-descriptions v-if="[3].includes(row.type)" title="多语言">
-            <el-descriptions-item v-for="item in MultilingualConfigLangList" :label="`${item.name}：`">
-              <el-image
-                v-if="row[item.key]"
-                style="width: 80px"
-                :src="row[item.key]"
-                :preview-src-list="[row[item.key]]"
-              ></el-image>
-              <span v-else>-</span>
-            </el-descriptions-item>
-          </el-descriptions>
-        </div>
+      <template #navPic_default="{ row }">
+        <el-image style="width: 80px" :src="row.navPic" :preview-src-list="[row.navPic]"></el-image>
       </template>
-      <template #configValueZh_default="{ row }">
-        <el-image
-          v-if="[3, 4].includes(row.type)"
-          style="width: 80px"
-          :src="row.configValueZh"
-          :preview-src-list="[row.configValueZh]"
-        ></el-image>
-        <el-link v-else-if="row.type === 5" :href="row.configValueZh" target="_blank">{{ row.configValueZh }}</el-link>
-        <span v-else>{{ row.configValueZh }}</span>
-      </template>
-      <template #type_default="{ row }">
-        {{ MultilingualConfigTypeDict[row.type]?.name }}
+
+      <template #mainRecommend_default="{ row }">
+        {{ ProductMainRecommendDict[row.mainRecommend]?.name }}
         <!-- <VxeTableSelectTags :value="row.type" :enumDict="ProductManualTypeDict" /> -->
       </template>
-      <template #lang_default="{ row }">
-        111
-        <!-- <VxeTableSelectTags :value="row.lang" :enumDict="ProductManualLangDict" /> -->
+      <template #recommendPic_default="{ row }">
+        <el-image style="width: 80px" :src="row.recommendPic" :preview-src-list="[row.recommendPic]"></el-image>
+      </template>
+
+      <template #publishStatus_default="{ row }">
+        {{ ProductPublishStatusDict[row.publishStatus]?.name }}
+        <!-- <VxeTableSelectTags :value="row.type" :enumDict="ProductManualTypeDict" /> -->
       </template>
 
       <template #operate_default="{ row }">
+        <vxe-button type="text" key="view" status="primary" @click="tableViewOperate(row)">详情</vxe-button>
         <vxe-button type="text" key="edit" status="primary" @click="tableEditOperate(row)">编辑</vxe-button>
-        <!-- <vxe-button type="text" key="delete" status="danger" @click="tableDeleteOperate(row)">删除</vxe-button> -->
+        <vxe-button type="text" key="delete" status="danger" @click="tableDeleteOperate(row)">删除</vxe-button>
       </template>
     </vxe-grid>
     <ConfigForm
