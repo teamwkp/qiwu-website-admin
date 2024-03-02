@@ -74,9 +74,9 @@ const gridOptions = reactive({
     items: [
       {
         field: 'name',
-        title: '分类名称',
+        title: '产品名称',
         span: 8,
-        itemRender: { name: '$input', props: { placeholder: '请输入分类名称' } },
+        itemRender: { name: '$input', props: { placeholder: '请输入产品名称' } },
       },
 
       {
