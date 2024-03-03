@@ -80,7 +80,13 @@ const closeOperate = () => {
 <template>
   <!-- :show-close="false"
     :close-on-click-modal="false" props.isFormVisible isVisible -->
-  <el-dialog v-model="isVisible" :title="props.selectItem ? '编辑' : '新增'" width="600">
+  <el-dialog
+    :show-close="false"
+    :close-on-click-modal="false"
+    v-model="isVisible"
+    :title="props.selectItem ? '编辑' : '新增'"
+    width="600"
+  >
     <el-form
       ref="ruleFormRef"
       class="config-form-view"

@@ -258,7 +258,6 @@ const triggerAddOperate = () => {
 };
 
 const tableEditOperate = (row) => {
-  console.log('🚀 ~ tableEditOperate ~ tableEditOperate:', row);
   selectItem.value = row;
   isFormVisible.value = true;
 };
@@ -337,10 +336,6 @@ const reloadOperate = async () => {
       <template #type_default="{ row }">
         {{ MultilingualConfigTypeDict[row.type]?.name }}
         <!-- <VxeTableSelectTags :value="row.type" :enumDict="ProductManualTypeDict" /> -->
-      </template>
-      <template #lang_default="{ row }">
-        111
-        <!-- <VxeTableSelectTags :value="row.lang" :enumDict="ProductManualLangDict" /> -->
       </template>
 
       <template #operate_default="{ row }">

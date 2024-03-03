@@ -54,3 +54,7 @@ export const ProductDeleteApi = (data: any) => {
     data,
   });
 };
+// 产品详情
+export const ProductDetailApi = (id: string) => {
+  return http.request<ResponseData<any>>('get', `/product/detail/${id}`, {});
+};

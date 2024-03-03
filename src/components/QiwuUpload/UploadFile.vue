@@ -8,11 +8,11 @@
 -->
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watchEffect } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
-
 import { ElLoading, type UploadProps, type UploadUserFile, ElMessage } from 'element-plus';
 import { postUploadOss } from '@/api/common/index';
+import remove from 'lodash/remove';
 
 interface PropsModel {
   modelValue?: string; // 接受外部v-model传入的值,记录的AttachGUID值
@@ -26,7 +26,8 @@ interface PropsModel {
   accept?: string;
   isShowTip?: boolean; // 是否显示提示
   lang?: string; // 语言
-  reminderCont: string; // 上传文件的额外提示
+  reminderCont?: string; // 上传文件的额外提示
+  fileInitList?: any[]; // 编辑回显图片
   // changeUploadOperate: (imgList:string[]) => {};
   // showFileList?: boolean; //是否显示文件列表
   // withCredentials?: boolean; //支持发送 cookie 凭证信息
@@ -47,18 +48,11 @@ const props = withDefaults(defineProps<PropsModel>(), {
   accept: 'image/*',
   isShowTip: true,
   lang: '',
+  fileInitList: [],
+  reminderCont: '',
 });
 
-const fileList = ref<UploadUserFile[]>([
-  // {
-  //   name: "food.jpeg",
-  //   url: "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100"
-  // },
-  // {
-  //   name: "plant-1.png",
-  //   url: "/images/plant-1.png"
-  // }
-]);
+const fileList = ref<UploadUserFile[]>(props?.fileInitList || []);
 
 const dialogImageUrl = ref('');
 const dialogVisible = ref(false);
@@ -67,8 +61,21 @@ const dialogVisible = ref(false);
 const showTip = ref(props.fileTypeList?.length > 0 || props.fileSize);
 const isShowAddBtn = ref(true);
 
+watchEffect(() => {
+  // console.log('🚀 ~ props?.:', props, props?.fileInitList);
+  if (props?.fileInitList?.length > 0) {
+    fileList.value = props?.fileInitList || [];
+    isShowAddBtnOperate();
+  } else {
+    // isShowAddBtnOperate();
+  }
+});
+
 onMounted(() => {
-  emit('changeUploadOperate', ['1111'], props?.lang);
+  // emit('changeUploadOperate', ['1111'], props?.lang);
+  // setTimeout(() => {
+  //   isShowAddBtn.value = false;
+  // }, 1000);
 });
 
 // 上传前校验
@@ -119,57 +126,77 @@ const uploadImg = async (file) => {
   });
   const params = getFormData(file.file);
 
-  // 上传接口
-  const res = await postUploadOss(params);
-  if (Number(res.code) === 0) {
-    const fileData = res.data;
+  try {
+    // 上传接口
+    const res = await postUploadOss(params);
+    if (Number(res.code) === 0) {
+      const fileData = res.data;
 
-    // 文件url
-    let current: any = fileList.value.find((z) => z.uid == file.file.uid);
-    current.uploadUrl = fileData.url;
+      // 文件url
+      let current: any = fileList.value.find((z) => z.uid == file.file.uid);
+      current.uploadUrl = fileData.url;
 
-    fileList.value = fileList?.value?.map((item: any) => {
-      return item.uploadUrl;
-    });
-    console.log('🚀 ~ uploadImg ~ fileList.value?.length >= props?.limit:', fileList.value?.length >= props?.limit);
+      fileList.value.forEach((item, index) => {
+        if (item.uid == file.file.uid) {
+          fileList.value[index]['uploadUrl'] = fileData.url;
+        }
+      });
 
-    if (fileList.value?.length >= props?.limit) {
-      isShowAddBtn.value = false;
+      console.log('🚀 ~ //fileList.value=fileList?.value?.map ~ fileList.value:', fileList.value);
+
+      if (fileList.value?.length >= props?.limit) {
+        isShowAddBtn.value = false;
+      } else {
+        isShowAddBtn.value = true;
+      }
+      const currList = fileList.value.map((item) => item.uploadUrl);
+      console.log('🚀 ~ uploadImg ~ currList:', currList);
+      // emit('changeUploadOperate', [fileData.url], props?.lang);
+      emit('changeUploadOperate', currList, props?.lang);
     } else {
-      isShowAddBtn.value = true;
+      console.log('🚀 ~ uploadImg ~ fileList.value:', fileList.value);
+      remove(fileList.value, (z) => z.uid == file.file.uid);
+
+      ElMessage({
+        message: res.msg || '发生错误，请稍后重试',
+        type: 'warning',
+      });
     }
-    console.log('🚀 ~ uploadImg ~ isShowAddBtn.value:', isShowAddBtn.value);
 
-    emit('changeUploadOperate', [fileData.url], props?.lang);
-  } else {
-    // TODO:
-    // remove(fileList.value, z => z.uid == file.file.uid);
-
+    loading.close();
+  } catch (error) {
+    console.log('🚀 ~ uploadImg ~ error:', error);
+    console.log('🚀 ~ uploadImg ~ fileList.value:', fileList.value);
+    // isShowAddBtn.value = false;
+    loading.close();
+    const currMsg =
+      error && typeof error == 'object'
+        ? error.statusText || error.message || JSON.stringify(error)
+        : error || '发生错误，请稍后重试！';
     ElMessage({
-      message: res.msg || '发生错误，请稍后重试',
+      message: currMsg,
       type: 'warning',
     });
   }
-
-  loading.close();
-
-  //  .catch(error => {
-  //     remove(fileList.value, z => z.uid == file.file.uid);
-
-  //     loading.close();
-  //     const currMsg =
-  //       error && typeof error == "object"
-  //         ? error.statusText || error.message || JSON.stringify(error)
-  //         : error || "发生错误，请稍后重试！";
-  //     ElMessage({
-  //       message: currMsg,
-  //       type: "warning"
-  //     });
-  //   });
 };
 
 const handleRemove: UploadProps['onRemove'] = (uploadFile, uploadFiles) => {
-  console.log(uploadFile, uploadFiles);
+  console.log('🚀 ~ uploadFile, uploadFiles:', uploadFile, uploadFiles, fileList.value);
+  if (fileList.value?.length >= props?.limit) {
+    isShowAddBtn.value = false;
+  } else {
+    isShowAddBtn.value = true;
+  }
+  const currList = fileList.value.map((item) => item.uploadUrl);
+  emit('changeUploadOperate', currList, props?.lang);
+};
+
+const isShowAddBtnOperate = () => {
+  if (fileList.value?.length >= props?.limit) {
+    isShowAddBtn.value = false;
+  } else {
+    isShowAddBtn.value = true;
+  }
 };
 
 const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
@@ -179,7 +206,6 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 </script>
 
 <template>
-  <!-- action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" -->
   <el-upload
     v-model:file-list="fileList"
     action="#"
@@ -193,7 +219,6 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
     :on-remove="handleRemove"
     :class="{ uoloadSty: isShowAddBtn, disUoloadSty: !isShowAddBtn }"
   >
-    <!-- TODO:限制上传 v-if="fileList?.length < props?.limit"-->
     <el-icon><Plus /></el-icon>
 
     <template #tip>
@@ -231,8 +256,6 @@ const handlePictureCardPreview: UploadProps['onPreview'] = (uploadFile) => {
 }
 
 .uoloadSty .el-upload--picture-card {
-  /* TODO: */
-  display: block;
 }
 .disUoloadSty .el-upload--picture-card {
   display: none; /* 上传按钮隐藏 */

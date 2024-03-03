@@ -119,6 +119,11 @@ export const ProductMainRecommendList = [
   { label: '是', value: 1 },
 ];
 
+export const ProductRecommendStatusList = [
+  { label: '不推荐', value: 0 },
+  { label: '推荐', value: 1 },
+];
+
 export const ProductPublishStatusDict = {
   0: { name: '下架', type: 2 },
   1: { name: '上架', type: 1 },

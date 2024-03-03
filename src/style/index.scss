@@ -1,9 +1,9 @@
-@import "./transition";
-@import "./element-plus";
-@import "./sidebar";
-@import "./dark";
- @import 'vxe-table/lib/style.css';
- @import './vxe-table.scss';
+@import './transition';
+@import './element-plus';
+@import './sidebar';
+@import './dark';
+@import 'vxe-table/lib/style.css';
+@import './vxe-table.scss';
 /* 自定义全局 CssVar */
 :root {
   /* 左侧菜单展开、收起动画时长 */
@@ -20,3 +20,50 @@
   filter: invert(80%);
 }
 
+.page-module-view {
+  // TODO：
+  // min-height: 600px;
+
+  .box-card {
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      .card-header__left {
+        span:nth-child(1) {
+          font-size: 16px;
+          font-weight: bold;
+        }
+        span:nth-child(2) {
+          margin-left: 20px;
+
+          color: #666;
+
+          font-size: 14px;
+        }
+      }
+    }
+    .el-collapse {
+      /* border-top: none !important; */
+      .el-collapse-item__header {
+        color: #666;
+        border: none !important;
+
+        font-size: 16px;
+      }
+      .el-collapse-item__content {
+        padding-bottom: 0;
+        .el-collapse:last-child {
+          border-bottom: none !important;
+        }
+      }
+    }
+    .rule-form-view {
+      .form-bottom-cont {
+        width: 100%;
+        padding: 20px 0 10px;
+
+        background: #fff;
+      }
+    }
+  }
+}

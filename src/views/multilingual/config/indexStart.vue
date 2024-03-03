@@ -8,19 +8,15 @@
 -->
 
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue';
-import { VXETable } from 'vxe-table';
-import { useRouter } from 'vue-router';
+import { reactive, ref } from 'vue';
+
+import { MultiLanguageConfigListApi } from '@/api/multilingual.ts';
 import ConfigForm from './components/ConfigForm.vue';
-import { ProductPublishStatusDict, ProductMainRecommendDict, ProductPublishStatusList } from '@/enums/selectEnum.ts';
-import { ProductListApi, ProductDeleteApi, ProductCategoryListApi } from '@/api/commodity';
+import { MultilingualConfigTypeDict, MultilingualConfigLangList } from '@/enums/selectEnum.ts';
 
 const isFormVisible = ref(false);
 const selectItem = ref(null);
 const tableParams = ref(null);
-const router = useRouter();
-
-const productCategoryList = ref([]);
 
 const xGrid = ref();
 const gridOptions = reactive({
@@ -28,15 +24,13 @@ const gridOptions = reactive({
   showHeaderOverflow: true,
   showOverflow: true,
   keepSource: true,
-  id: 'id',
-  // 'scroll-x': {
-  //   enabled: true,
-  // },
+  id: 'translation_list',
   // height: 600,
   rowConfig: {
     keyField: 'id',
     isHover: true,
-    height: 70,
+    maxHeight: 80,
+    // height: 100,
   },
   columnConfig: {
     resizable: true,
@@ -55,8 +49,8 @@ const gridOptions = reactive({
     // expandAll: true,
     // expandRowKeys: 'id',
     // isRowExpandByRow: true,
-    rowField: 'id',
     // reserve: true,
+    rowField: 'id',
   },
   sortConfig: {
     trigger: 'cell',
@@ -75,23 +69,12 @@ const gridOptions = reactive({
     titleAlign: 'right',
     items: [
       {
-        field: 'name',
-        title: '产品名称',
+        field: 'keyword',
+        title: '值',
         span: 8,
-        itemRender: { name: '$input', props: { placeholder: '请输入产品名称' } },
+        itemRender: { name: '$input', props: { placeholder: '请输入值' } },
       },
-      {
-        field: 'productCategoryId',
-        title: '产品分类',
-        span: 8,
-        itemRender: { name: '$select', options: [], clearable: true },
-      },
-      {
-        field: 'publishStatus',
-        title: '上架状态',
-        span: 8,
-        itemRender: { name: '$select', options: [], clearable: true },
-      },
+
       {
         span: 24,
         align: 'right',
@@ -113,6 +96,7 @@ const gridOptions = reactive({
     custom: true, // 显示自定义列按钮
     slots: {
       buttons: 'toolbar_buttons',
+      // tools: "toolbar_tools",
     },
   },
   proxyConfig: {
@@ -120,7 +104,6 @@ const gridOptions = reactive({
     form: true,
     props: {
       result: 'result',
-      // total: "page.total", // 配置响应结果总页数字段
       total: 'total', // 配置响应结果总页数字段
     },
     // 只接收Promise，具体实现自由发挥
@@ -144,85 +127,52 @@ const gridOptions = reactive({
           pageIndex: page.currentPage,
         };
         tableParams.value = queryParams;
+        // console.log('🚀 ~ filters.forEach ~ filters:', queryParams);
+        // console.log('🚀 ~ XEUtils.serialize(queryParams):', XEUtils.serialize(queryParams));
         return getDataOperate(queryParams);
       },
     },
   },
   columns: [
     {
-      field: 'id',
-      title: 'ID',
+      type: 'expand',
+      title: '查看多语言',
       width: 100,
-    },
-    {
-      field: 'name',
-      title: '产品名称',
-      width: 120,
-    },
-    {
-      field: 'productCategoryName',
-      title: '所属分类',
-      width: 120,
-    },
-    {
-      field: 'subTitle',
-      title: '副标题',
-      width: 120,
-    },
-    {
-      field: 'navPic',
-      title: '产品导航图片',
-      slots: { default: 'navPic_default' },
-      width: 120,
-    },
-    {
-      field: 'mainRecommend',
-      title: '是否主推',
-      slots: { default: 'mainRecommend_default' },
-      width: 100,
-    },
-    {
-      field: 'recommendPic',
-      title: '产品推荐图片',
-      slots: { default: 'recommendPic_default' },
-      width: 120,
-    },
-    {
-      field: 'publishStatus',
-      title: '上架状态',
-      slots: { default: 'publishStatus_default' },
-      width: 100,
+      slots: { content: 'expand_cont' },
     },
 
     {
-      field: 'buyUrl',
-      title: '购买链接',
-      width: 160,
+      field: 'configKey',
+      title: 'key',
     },
     {
-      field: 'sort',
-      title: '排序',
-      width: 80,
+      field: 'configValueZh',
+      title: '值',
+      slots: { default: 'configValueZh_default' },
+    },
+    // TODO：
+    {
+      field: 'type',
+      title: '类型',
+      slots: { default: 'type_default' },
     },
     {
-      field: 'description',
-      title: '产品描述',
-      width: 120,
+      field: 'remark',
+      title: '描述',
     },
 
     {
       field: 'creatorName',
       title: '创建人',
-      width: 100,
     },
-
-    { field: 'createTime', title: '创建时间', width: 100 },
+    { field: 'createTime', title: '创建时间' },
 
     {
       field: 'operate',
       title: '操作',
-      width: 150,
-      fixed: 'right',
+      width: 110,
+      // visible: false,
+      // sortable: true,
       slots: { default: 'operate_default' },
     },
   ],
@@ -243,7 +193,7 @@ const gridOptions = reactive({
 });
 
 const getDataOperate = async (queryParams) => {
-  const res = await ProductListApi(queryParams);
+  const res = await MultiLanguageConfigListApi(queryParams);
 
   let currData = {
     result: [],
@@ -252,6 +202,7 @@ const getDataOperate = async (queryParams) => {
 
   if (Number(res.code) === 0) {
     const result = res.data;
+    // const currList = result.rows?.map((item) => ({ ...item, children: [1, 2, 3] }));
     const currList = result.rows;
     currData['result'] = currList;
     currData['total'] = result.total;
@@ -260,66 +211,31 @@ const getDataOperate = async (queryParams) => {
   return currData;
 };
 
-onMounted(() => {
-  productCategoryListApiOperate();
-});
-
-const productCategoryListApiOperate = async () => {
-  const res = await ProductCategoryListApi({});
-  if (Number(res.code) === 0) {
-    const result = res.data?.rows || [];
-    const categoryList = result?.map((item) => ({ value: item.id, label: item.name }));
-    categoryList.unshift({ value: undefined, label: '全部' });
-    productCategoryList.value = categoryList;
-
-    const statusList = ProductPublishStatusList;
-    statusList.unshift({ value: undefined, label: '全部' });
-
-    const { formConfig } = gridOptions;
-
-    if (formConfig && formConfig.items) {
-      const categoryItem = formConfig.items[1];
-      if (categoryItem && categoryItem.itemRender) {
-        categoryItem.itemRender.options = categoryList;
-      }
-    }
-    if (formConfig && formConfig.items) {
-      const statusItem = formConfig.items[2];
-      if (statusItem && statusItem.itemRender) {
-        statusItem.itemRender.options = statusList;
-      }
-    }
-  }
-};
-
 const triggerAddOperate = () => {
   console.log('🚀 ~ triggerAddOperate ~ triggerAddOperate:');
   selectItem.value = null;
-  // isFormVisible.value = true;
-  router.push('/commodity/products/detail');
+  isFormVisible.value = true;
 };
 
 const tableEditOperate = (row) => {
-  console.log('🚀 ~ tableEditOperate ~ tableEditOperate:', row);
   selectItem.value = row;
-  // isFormVisible.value = true;
-  router.push(`/commodity/products/detail?id=${row.id}&configType=2`);
+  isFormVisible.value = true;
 };
 
 const tableDeleteOperate = async (row) => {
   // type: confirm cancel
-  const type = await VXETable.modal.confirm('您确定要删除吗？');
-  if (type === 'confirm') {
-    const res = await ProductDeleteApi({ ids: [row.id] });
-    if (Number(res.code) === 0) {
-      reloadOperate();
-      VXETable.modal.message({ content: `操作成功`, status: 'success' });
-    }
-  }
+  // const type = await VXETable.modal.confirm('您确定要删除吗？');
+  // if (type === 'confirm') {
+  //   const res = await ProductManualDelete({ id: row.id });
+  //   if (Number(res.code) === 0) {
+  //     reloadOperate();
+  //     VXETable.modal.message({ content: `操作成功`, status: 'success' });
+  //   }
+  // }
 };
 
 const tableViewOperate = (row) => {
-  router.push(`/commodity/products/detail?id=${row.id}&configType=1`);
+  // router.push(`/device/specifications-detail-list?mpid=${row.id}&productName=${row.name}`);
 };
 
 const formOperate = (isReset) => {
@@ -341,29 +257,50 @@ const reloadOperate = async () => {
       <!--将表单放在工具栏中-->
       <template #toolbar_buttons>
         <vxe-button status="primary" @click="triggerAddOperate">新增</vxe-button>
+        <!-- <vxe-button status="primary" @click="triggerProofreadOperate">人工校对</vxe-button>
+        <vxe-button @click="triggerProxy('reload')">重置条件并重载</vxe-button>
+        <vxe-button @click="triggerProxy('mark_cancel')">删除/取消</vxe-button> -->
       </template>
 
-      <template #navPic_default="{ row }">
-        <el-image style="width: 80px" :src="row.navPic" :preview-src-list="[row.navPic]"></el-image>
+      <template #expand_cont="{ row, rowIndex }">
+        <div class="vxe-table-expand-view">
+          <el-descriptions v-if="[1, 5].includes(row.type)" title="多语言">
+            <el-descriptions-item v-for="item in MultilingualConfigLangList" :label="`${item.name}：`">
+              <span v-if="row[item.key]">{{ row[item.key] }}</span>
+              <span v-else>-</span>
+            </el-descriptions-item>
+          </el-descriptions>
+          <el-descriptions v-if="[3].includes(row.type)" title="多语言">
+            <el-descriptions-item v-for="item in MultilingualConfigLangList" :label="`${item.name}：`">
+              <el-image
+                v-if="row[item.key]"
+                style="width: 80px"
+                :src="row[item.key]"
+                :preview-src-list="[row[item.key]]"
+              ></el-image>
+              <span v-else>-</span>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
       </template>
-
-      <template #mainRecommend_default="{ row }">
-        {{ ProductMainRecommendDict[row.mainRecommend]?.name }}
-        <!-- <VxeTableSelectTags :value="row.type" :enumDict="ProductManualTypeDict" /> -->
+      <template #configValueZh_default="{ row }">
+        <el-image
+          v-if="[3, 4].includes(row.type)"
+          style="width: 80px"
+          :src="row.configValueZh"
+          :preview-src-list="[row.configValueZh]"
+        ></el-image>
+        <el-link v-else-if="row.type === 5" :href="row.configValueZh" target="_blank">{{ row.configValueZh }}</el-link>
+        <span v-else>{{ row.configValueZh }}</span>
       </template>
-      <template #recommendPic_default="{ row }">
-        <el-image style="width: 80px" :src="row.recommendPic" :preview-src-list="[row.recommendPic]"></el-image>
-      </template>
-
-      <template #publishStatus_default="{ row }">
-        {{ ProductPublishStatusDict[row.publishStatus]?.name }}
+      <template #type_default="{ row }">
+        {{ MultilingualConfigTypeDict[row.type]?.name }}
         <!-- <VxeTableSelectTags :value="row.type" :enumDict="ProductManualTypeDict" /> -->
       </template>
 
       <template #operate_default="{ row }">
-        <vxe-button type="text" key="view" status="primary" @click="tableViewOperate(row)">详情</vxe-button>
         <vxe-button type="text" key="edit" status="primary" @click="tableEditOperate(row)">编辑</vxe-button>
-        <vxe-button type="text" key="delete" status="danger" @click="tableDeleteOperate(row)">删除</vxe-button>
+        <!-- <vxe-button type="text" key="delete" status="danger" @click="tableDeleteOperate(row)">删除</vxe-button> -->
       </template>
     </vxe-grid>
     <ConfigForm

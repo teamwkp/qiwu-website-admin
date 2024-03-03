@@ -46,6 +46,9 @@ dependencies:
   jsencrypt:
     specifier: ^3.3.2
     version: 3.3.2
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   mitt:
     specifier: ^3.0.0
     version: 3.0.0

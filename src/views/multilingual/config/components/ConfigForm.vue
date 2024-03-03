@@ -8,7 +8,7 @@
 -->
 
 <script setup lang="ts">
-import { ref, watch, computed, onMounted } from 'vue';
+import { ref, watch, computed, onMounted, watchEffect } from 'vue';
 import { VXETable } from 'vxe-table';
 import {
   MultilingualConfigTypeList,
@@ -70,11 +70,16 @@ let isVisible = computed(() => {
 });
 
 onMounted(() => {
+  console.log('🚀 ~ onMounted ~ onMounted:');
   if (props?.selectItem) {
     langList.value = MultilingualConfigLangList;
   } else {
     langList.value = MultilingualConfigLangZhList;
   }
+});
+
+watchEffect(() => {
+  console.log('🚀 ~ watchEffect ~ watchEffect:', props);
 });
 
 const submitForm = async (formEl: any) => {
@@ -119,30 +124,17 @@ const changeUploadOperate = (imgList: string[], lang?: string) => {
   // module1.titleImg
   ruleFormData.value[lang ?? ''] = imgList.join(',');
 };
-
-// const getUploadFile = (data) => {
-//   const id = data && data[0] && data[0].id;
-//   const url = data && data[0] && data[0].url;
-//   uploadFile.value = data;
-//   ruleFormData.value.area = id;
-//   currUploadFile.value = url;
-// };
-
-// const changeLangOperate = (value) => {
-//   console.log('🚀 ~ changeLangOperate ~ value,list:', value, ruleFormData.value);
-//   const currLang = manualCountryList.value.filter((item) => item.countryName === value);
-//   console.log('🚀 ~ changeLangOperate ~ currLang:', currLang);
-//   ruleFormData.value = {
-//     ...ruleFormData.value,
-//     img: currLang[0] && currLang[0].countryImg,
-//   };
-// };
 </script>
 
 <template>
-  <!-- :show-close="false"
-    :close-on-click-modal="false" props.isFormVisible isVisible -->
-  <el-dialog v-model="isVisible" :title="props.selectItem ? '编辑' : '新增'" width="600">
+  <!--  props.isFormVisible isVisible -->
+  <el-dialog
+    :show-close="false"
+    :close-on-click-modal="false"
+    v-model="isVisible"
+    :title="props.selectItem ? '编辑' : '新增'"
+    width="600"
+  >
     <el-form
       ref="ruleFormRef"
       class="config-form-view"
@@ -267,6 +259,6 @@ const changeUploadOperate = (imgList: string[], lang?: string) => {
 .config-form-view {
   overflow-y: scroll;
 
-  height: 500px;
+  max-height: 500px;
 }
 </style>

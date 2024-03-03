@@ -239,7 +239,11 @@ const tableViewOperate = (row) => {
 const formOperate = (isReset) => {
   isFormVisible.value = false;
   if (isReset) {
-    reloadOperate();
+    // reloadOperate();
+    const $grid = xGrid.value;
+    if ($grid) {
+      $grid.commitProxy('query');
+    }
   }
 };
 

@@ -46,7 +46,7 @@ const ruleForm = ref<any>({
 
 const activeNamesCollapse = ref(['1', '2', '3', '4']);
 // 1:view 2:edit 3:add
-const configType = ref(2);
+const configType = ref(1);
 
 const changeFormOperate = (data) => {
   console.log('🚀 ~ changeFormOperate ~ data:', data);
@@ -130,16 +130,19 @@ const editOperate = () => {
         }
         span:nth-child(2) {
           margin-left: 20px;
-          font-size: 14px;
+
           color: #666;
+
+          font-size: 14px;
         }
       }
     }
     .el-collapse {
       /* border-top: none !important; */
       .el-collapse-item__header {
-        font-size: 14px;
         border: none !important;
+
+        font-size: 14px;
       }
       .el-collapse-item__content {
         padding-bottom: 0;
@@ -151,8 +154,9 @@ const editOperate = () => {
     .rule-form-view {
       .form-bottom-cont {
         width: 100%;
-        background: #fff;
         padding: 20px 0 10px;
+
+        background: #fff;
       }
     }
   }
